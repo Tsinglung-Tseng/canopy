@@ -43,18 +43,28 @@
 
 ## ⏳ 待完成
 
+**当前承诺交付物：核心精简版 = M1–M5（ADR-007 切线）**。markdown-only 索引 + 检索 CLI，移植范围 ≈ 1,100 行 Python 有效逻辑（全仓 60% 明确排除：PDF/web UI 永久不做，MCP/watch 为 M6 增量）。预期规模 src 1.5k–2k 行 TS + 测试 600–1k 行，每个里程碑约一个会话量级。
+
 - [x] M0 文档奠基：dev-plan + 模块设计文档 + ADR 001–006（2026-06-11）
+- [x] M0.1 精简版评估与切线：移植清单实测、风险登记、ADR-007（2026-06-11）
 - [ ] M0.5 运维止血（不等重写）：truncate `molly.pageindex/mcp_server.log`（1.4 GB）与 `molly.tagger/watcher.log`（12 MB）；molly.pageindex 临时加 RotatingFileHandler + `.claude/worktrees/` 过滤，撑到 M7 退役
 - [ ] M1 仓库脚手架：package.json / tsconfig / Makefile（ir-gen / ir-check / agents-typecheck / agents-test）；`ir/canopy.tsp` 首版 + ts-obj emit + 钉 golden
-- [ ] M2 core：md→tree 纯函数移植；golden 测试 = 对照 molly.pageindex 既有 `*_structure.json`（去 summary 字段后逐字节比）
-- [ ] M3 retrieval：tokenize + BM25 + `canopy find`（无 LLM 链路先通）
+- [ ] M2 core：md→tree 纯函数移植（`page_index_md.py` 341 行 + utils 子集）；golden 测试 = 对照 molly.pageindex 既有 `*_structure.json`（去 summary 字段后逐字节比；js-tiktoken 计数偏差时按 ADR-007 降级为 deep-equal）
+- [ ] M3 retrieval：tokenize + BM25（`retrieval.py` 336 行）+ `canopy find`（无 LLM 链路先通）；jieba 差异验收 = top-k 重叠率
 - [ ] M4 Plexus 接入：节点摘要（par+ask）、`canopy search` 两阶段（askSchema）、Budget；MockLlm 测试绿
-- [ ] M5 CLI 完整 + logging 三铁律 + `--json` 输出契约
+- [ ] M5 CLI 完整 + logging 三铁律 + `--json` 输出契约 + 兼容序列化器（混读混写验证，ADR-007 风险 3）
 - [ ] M6 `canopy mcp`（query-only）+ `canopy watch`；MCP 注册切换、Molly worker startCmd 切换
 - [ ] M7 消费方迁移：readers.myapp 删自制 BM25 改调 CLI；library-search adapter 改走 canopy；launchd pageindex-batch 改 `canopy batch`；molly.pageindex 应用层退役（results/ 数据保留，见 ADR-006）
 - [ ] M8 SQLite FTS5 索引后端（大文本集路线，见 ADR-003）
 
 ## 📝 开发记录
+
+### 2026-06-11 — 精简版评估与切线（M0.1）
+
+- **背景调查**：molly.pageindex 全仓实测 5,369 行 Python；核心路径（page_index_md / retrieval / indexing / retrieve-md半边 / utils 子集）有效逻辑仅 ≈ 950–1,100 行，约 60% 代码（PDF 1,153 / web 905 / mcp_server 403 / client 236）不进移植范围。
+- **设计决策**：首个交付物定为核心精简版 = M1–M5 瘦身版（ADR-007）；PDF 与 web UI 永久排除；三项风险（tiktoken golden 对照、jieba 分词差异、JSON 序列化兼容）连同对策与验收标准成文登记。
+- **规模结论**：src ≈ 1.5k–2k 行 TS + 测试 600–1k 行，约 2–3 个开发会话。
+- **文档更新**：ADR-007 创建；dev-plan 里程碑重排（M2/M3/M5 验收标准细化）；indexing.md 补兼容序列化器职责。
 
 ### 2026-06-11 — 项目奠基（M0）
 
