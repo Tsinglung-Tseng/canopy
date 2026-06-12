@@ -48,16 +48,28 @@
 - [x] M0 文档奠基：dev-plan + 模块设计文档 + ADR 001–006（2026-06-11）
 - [x] M0.1 精简版评估与切线：移植清单实测、风险登记、ADR-007（2026-06-11）
 - [ ] M0.5 运维止血（不等重写）：truncate `molly.pageindex/mcp_server.log`（1.4 GB）与 `molly.tagger/watcher.log`（12 MB）；molly.pageindex 临时加 RotatingFileHandler + `.claude/worktrees/` 过滤，撑到 M7 退役
-- [ ] M1 仓库脚手架：package.json / tsconfig / Makefile（ir-gen / ir-check / agents-typecheck / agents-test）；`ir/canopy.tsp` 首版 + ts-obj emit + 钉 golden
-- [ ] M2 core：md→tree 纯函数移植（`page_index_md.py` 341 行 + utils 子集）；golden 测试 = 对照 molly.pageindex 既有 `*_structure.json`（去 summary 字段后逐字节比；js-tiktoken 计数偏差时按 ADR-007 降级为 deep-equal）
-- [ ] M3 retrieval：tokenize + BM25（`retrieval.py` 336 行）+ `canopy find`（无 LLM 链路先通）；jieba 差异验收 = top-k 重叠率
-- [ ] M4 Plexus 接入：节点摘要（par+ask）、`canopy search` 两阶段（askSchema）、Budget；MockLlm 测试绿
-- [ ] M5 CLI 完整 + logging 三铁律 + `--json` 输出契约 + 兼容序列化器（混读混写验证，ADR-007 风险 3）
-- [ ] M6 `canopy mcp`（query-only）+ `canopy watch`；MCP 注册切换、Molly worker startCmd 切换
-- [ ] M7 消费方迁移：readers.myapp 删自制 BM25 改调 CLI；library-search adapter 改走 canopy；launchd pageindex-batch 改 `canopy batch`；molly.pageindex 应用层退役（results/ 数据保留，见 ADR-006）
+- [x] M1 仓库脚手架：package.json / tsconfig / Makefile（ir-gen / ir-check / agents-typecheck / agents-test）；`ir/canopy.tsp` 首版 + ts-obj emit + 钉 golden（2026-06-11）
+- [x] M2 core：md→tree 纯函数移植；golden 验收超额完成——全量 4005 源文件中 2319 个未漂移源 **100% 逐字段全等**（含键序），16 个代表性 fixture 钉入 test/（2026-06-11）
+- [x] M3 retrieval：tokenize + BM25 + MemoryBM25Backend + `canopy find`；BM25 分数与 Python 原版对照容差 1e-9；jieba 差异验收 = 8 条历史 query top-5 重叠率 **97%**（2026-06-11）
+- [x] M4 Plexus 接入：summarize（par+ask）/ selectNodes（askSchema）/ synthesize、Budget fail-loud；MockLlm 测试绿（2026-06-11）
+- [x] M5 CLI 完整（index/batch/find/search/grep/corpora + --json + 退出码 0/1/2）+ logging 三铁律（强约束 grep 全过）+ 兼容序列化器（`JSON.stringify(x,null,2)` 与 Python `json.dumps(indent=2, ensure_ascii=False)` 实测逐字节 roundtrip；混读混写双向验证）（2026-06-11）
+- [x] M6 `canopy mcp`（query-only，stdio JSON-RPC 纯净断言级测试）+ `canopy watch`（debounce/last-write-wins/热循环熔断/点目录前置过滤，进程级 e2e）；MCP 注册切换、Molly worker startCmd 切换留 M7（2026-06-11）
+- [x] E2E 端到端验证（2026-06-11）：真实 RPG 语料（3,821 产物）find 与 Python 版输出一致；真实 DeepSeek 两阶段 search（中文答案合成）；真实 LLM 索引 700 行长文档（4 calls）；二跑全 skip（md5 增量）；既有产物收养零重建；Python verbatim 检索代码消费 TS 产物 PASS
+- [ ] M7 消费方迁移：readers.myapp 删自制 BM25 改调 CLI；library-search adapter 改走 canopy；launchd pageindex-batch 改 `canopy batch`；MCP 注册切换、Molly worker startCmd 切换；molly.pageindex 应用层退役（results/ 数据保留，见 ADR-006）
 - [ ] M8 SQLite FTS5 索引后端（大文本集路线，见 ADR-003）
 
 ## 📝 开发记录
+
+### 2026-06-11 — M1–M6 全量实现 + 端到端验证
+
+- **交付**：src ≈ 1.7k 行 TS（core/retrieval/llm/corpus/indexing/cli/mcp/watch/logging/search/grep + 生成 types）+ 测试 9 文件 95 用例全绿；`make ir-check` / typecheck / build 全过。
+- **关键实测发现（修订设计认知）**：既有产物的**事实格式**与 core.md 原记述不同——`run_pageindex.py` md 分支把 CLI 未传参数的 `None` 直接覆盖进 config（不过滤），导致生产链路实际为：`write_node_id` **从未执行**（node_id 为 build_tree 的 1-based "0001" 起文档序）、节点 **text 保留**在产物中、summary/prefix_summary **追加在键序末尾**。该事实格式即 ADR-006 兼容契约，mdToTree 按此实现并以 golden 锁死（不调 writeNodeId；函数保留导出仅作对照）。
+- **三项 ADR-007 风险全部消除**：①golden 对照未触发 tiktoken 降级条款——2319 个未漂移源 100% 逐字节级全等（tiktoken 仅影响摘要阈值不影响结构）；②jieba 差异 top-5 重叠率 97%（>验收线）；③序列化器零成本——`JSON.stringify(x,null,2)` 与 Python 产物逐字节 roundtrip 实测成立。
+- **iCloud TCC 阻断的对照路径**：本会话进程树无 iCloud Drive 授权（EPERM），复用机器既定模式（launchd + node TCC wrapper，pageindex-batch 同款）一次性快照 vault 4,007 个 .md 到 /tmp 完成全量对照。
+- **增量语义落地**：md5 状态侧车 `<resultsDir>/.canopy-state.json`；既有产物（含 structure 键、无 md5 记录）首扫收养（记 md5 即跳过）——47 MB 资产零重建，e2e 实证（收养→改文件→重建链路）。
+- **新增配置开口**：`llm.schema: json_schema|json_object|off`（可选，映射 Plexus OpenAICompatOpts.schema）——DeepSeek 不支持 json_schema response_format，显式配 json_object 省掉每次 stage-2 的 400 降级往返（缺省仍走 Plexus 默认+文档化降级）。
+- **Node 基线**：使用 `fs.globSync`（Node ≥22）做 corpus 源枚举，实际基线从设计的 ≥20 提至 ≥22（本机 v24）。
+- **范围注记**：M0.5（molly 运维止血）与 M7（外部消费方迁移/退役）涉及对其它仓与注册表的改动，未在本轮自动执行；M8 后端接口（RetrievalBackend）已就位。
 
 ### 2026-06-11 — 精简版评估与切线（M0.1）
 

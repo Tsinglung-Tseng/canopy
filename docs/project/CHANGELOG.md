@@ -1,5 +1,20 @@
 # Canopy CHANGELOG
 
+### 2026-06-11（M1–M6 实现 + e2e）
+- [feature] scaffold: M1——package.json/tsconfig/Makefile；`ir/canopy.tsp`（TreeNode/DocStructure/CorpusConfig + namespace Api 输出契约）→ ts-obj emit `src/types/canopy.types.ts`，golden 钉死，`make ir-check` 闸。
+- [feature] core: M2——mdToTree 纯函数移植（heading 状态机/文本切片/thinning/栈式建树/键序 formatStructure）。golden 全量对照：4005 源中 2319 个未漂移源 100% 逐字段全等；16 fixture 进 test/。
+- [fix] core: 实测修订设计认知——生产事实格式为 node_id 1-based（write_node_id 因 run_pageindex.py None 覆盖 bug 从未执行）、产物保留 text、summary 键序在末尾。mdToTree 按事实格式实现（ADR-006 兼容契约以 golden 为准）。
+- [feature] retrieval: M3——tokenize（jieba-rs 词级，标点集逐字符对齐 Python）+ BM25（参数/分数 1e-9 级对照）+ RetrievalBackend 接口 + MemoryBM25Backend。top-5 重叠率 97%（8 条历史 query vs Python 版）。
+- [feature] llm: M4——Plexus 接入：summarizeNode/buildSummaries（par+ask，阈值下原文零调用）、selectRelevantNodes（askSchema 强制 {node_ids}，单文档失败降级空命中）、synthesizeAnswer；Budget fail-loud；MockLlm 确定性测试。
+- [feature] corpus: M5——corpora.yaml 解析（CANOPY_CONFIG > ~/.config/canopy/；${VAR} 未定义即崩；未知键报错；source.dir/llm 三字段/重名校验）。
+- [feature] indexing: M5——规范名直写（无裸名中间态）、md5 状态侧车增量、既有产物收养（47MB 零重建）、原子写（.tmp+rename）、兼容序列化（JSON.stringify(x,null,2) 与 Python 逐字节 roundtrip 实测）、批量失败隔离（fail loud at end）、孤儿清理。
+- [feature] cli: M5——canopy index/batch/find/search/grep/corpora/watch/mcp；--json 单文档 stdout 纯净；退出码 0（含零命中）/1/2；cost 摘要进 stderr。
+- [feature] logging: M5——三铁律实现（库不落盘/落盘强制 10MB×3 轮转/降噪内建）；强约束 grep 检查点全过；轮转行为测试。
+- [feature] mcp: M6——query-only stdio MCP（find_notes/search_notes/grep_notes/index_note），console 重定向 stderr，启动 fail-loud；stdio JSON-RPC 协议级测试含 stdout 纯净断言。
+- [feature] watch: M6——chokidar 点目录前置过滤 + per-path debounce + last-write-wins 版本队列 + 热循环熔断（60s>10 次→熔断 10min）+ md5 跳过；进程级 e2e。
+- [feature] config: llm.schema 可选字段（json_schema|json_object|off → Plexus OpenAICompatOpts.schema）；DeepSeek 配 json_object 省 stage-2 的 400 降级往返。
+- [test] e2e: 真实 RPG 语料 find 与 Python 一致；真实 DeepSeek 两阶段 search + 中文合成；真实 LLM 索引（700 行/4 calls）；增量二跑全 skip；Python verbatim 检索代码消费 TS 产物 PASS。95 用例 / 9 文件全绿。
+
 ### 2026-06-11
 - [decision] project: 立项。从 molly.pageindex 提炼为独立 TS CLI 工具库，命名 Canopy（Aquifer/石笋/Plexus 谱系）。语言选型 TS（vs Go/Rust，ADR-001）。
 - [decision] logging: 日志三铁律成文（ADR-002），针对 mcp_server.log 1.4 GB 事故的结构性根因。

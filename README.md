@@ -6,16 +6,28 @@
 
 ## 状态
 
-M0 — 设计文档阶段，尚未编码。从 [docs/project/dev-plan.md](docs/project/dev-plan.md) 开始读。
+M1–M6 已实现并完成端到端验证（2026-06-11）：core / retrieval / llm / corpus / indexing / cli / mcp / watch / logging 全模块落地，95 测试用例全绿，真实 corpus（RPG vault 3,821 产物）+ 真实 DeepSeek 两阶段检索验证通过。待办：M0.5 运维止血、M7 消费方迁移、M8 SQLite FTS5 后端。详见 [docs/project/dev-plan.md](docs/project/dev-plan.md)。
+
+```bash
+npm install && make ir-check && npm test   # 全部闸门
+export CANOPY_CONFIG=...                   # 或 ~/.config/canopy/corpora.yaml
+canopy corpora                             # 列出 corpus + 健康度
+canopy find   --corpus vault "查询词"       # stage-1 BM25（无 LLM）
+canopy search --corpus vault "查询词" --lang zh   # 两阶段 + 答案合成
+canopy index  --corpus vault [--file x.md] # 增量索引
+canopy mcp    --corpus vault               # query-only stdio MCP
+canopy watch  --corpus vault               # 常驻 watcher（单实例）
+```
 
 ## 文档地图
 
 - 计划与里程碑：`docs/project/dev-plan.md`
 - 变更时间线：`docs/project/CHANGELOG.md`
 - 模块设计（10 篇）：`docs/modules/`
-- 架构决策（ADR 001–006）：`docs/decisions/`
+- 架构决策（ADR 001–007）：`docs/decisions/`
   - 001 语言选型 TS · 002 日志三铁律 · 003 检索后端可插拔
   - 004 跨语言 CLI `--json` 契约 · 005 基座消费（fsir + Plexus）· 006 索引格式兼容
+  - 007 核心精简版切线（lean core scope）
 
 ## 基座
 

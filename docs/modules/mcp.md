@@ -1,6 +1,6 @@
 # mcp — query-only stdio MCP server
 
-状态：设计完成（未开始编码）
+状态：已实现（src/mcp.ts，2026-06-11）
 
 ## 职责
 

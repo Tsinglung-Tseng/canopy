@@ -1,6 +1,6 @@
 # core — markdown → 文档树
 
-状态：设计完成（未开始编码）
+状态：已实现（`src/core/tree.ts` + `src/core/tokens.ts`，2026-06-11；golden 16 fixture + 全量 2319 源 100% 全等）
 
 ## 职责
 
@@ -20,7 +20,7 @@ buildTree(nodes): TreeNode[]              // 栈式按 level 建树；node_id 4 
 
 ## 关键实现注意
 
-- node_id 编号语义：构树后由 `write_node_id` 风格的先序遍历重写（从 "0000" 起逐节点递增），与既有产物对齐——M2 用 golden 对照锁死，不靠记忆。
+- **node_id 编号语义（M2 golden 实测修订）**：既有产物全部是 `build_tree_from_nodes` 的 **1-based**（"0001" 起）文档序编号——`write_node_id`（0-based 重写）在生产链路**从未执行过**：`run_pageindex.py` md 分支把 CLI 未传的 `if_add_node_id=None` 直接覆盖进 config（不过滤 None），`None != 'yes'` 短路。同因：产物**保留 text 字段**（`if_add_node_text=None != 'no'`），summary/prefix_summary 生成后**追加在键序末尾**。该事实格式即 ADR-006 兼容契约；TS 版 mdToTree 不调 writeNodeId（函数保留导出仅作对照），golden 锁死。
 - token 计数仅 thinning 和摘要阈值用。Python 版走 litellm/tiktoken；TS 版用 `js-tiktoken`，cl100k 近似即可——只做阈值判断不做计费，少量偏差可容忍（在代码注释里写明这是文档化的容忍点）。
 - heading 正则要求 `#` 后有空格（`^#{1,6}\s+`），与 Python 版一致；frontmatter 区（`---` 包围）不含 heading 时天然无影响，不必特判。
 

@@ -1,6 +1,6 @@
 # llm — Plexus 编排层
 
-状态：设计完成（未开始编码）
+状态：已实现（src/llm/（agents/provider）+ src/search.ts，2026-06-11）
 
 ## 职责
 

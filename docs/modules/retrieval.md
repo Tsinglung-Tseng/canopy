@@ -1,6 +1,6 @@
 # retrieval — 分词 + BM25 + 可插拔后端
 
-状态：设计完成（未开始编码）
+状态：已实现（src/retrieval/（tokenize/bm25/backend/docs），2026-06-11）
 
 ## 职责
 
