@@ -1,0 +1,403 @@
+{
+  "doc_name": "Tool_NVML英伟达管理库_NVIDIA-Management-Library",
+  "line_count": 935,
+  "structure": [
+    {
+      "title": "Tool_NVML英伟达管理库_NVIDIA-Management-Library",
+      "node_id": "0001",
+      "line_num": 36,
+      "text": "# Tool_NVML英伟达管理库_NVIDIA-Management-Library",
+      "nodes": [
+        {
+          "title": "概述",
+          "node_id": "0002",
+          "line_num": 38,
+          "text": "## 概述\n\n**NVIDIA Management Library (NVML)** 是一个基于 C 语言的编程接口，用于监控和管理数据中心 GPU 的各种状态。它是构建第三方应用程序的平台，也是 NVIDIA 官方支持的 `nvidia-smi` 工具的底层库。",
+          "nodes": [
+            {
+              "title": "核心特性",
+              "node_id": "0003",
+              "line_num": 42,
+              "text": "### 核心特性\n\n- **线程安全**: 支持多线程同时调用 NVML 接口\n- **跨平台**: 支持 Linux 和 Windows 系统\n- **全面监控**: 提供 GPU 硬件、性能、错误等全方位状态信息\n- **可编程管理**: 允许程序化修改 GPU 配置",
+              "summary": "### 核心特性\n\n- **线程安全**: 支持多线程同时调用 NVML 接口\n- **跨平台**: 支持 Linux 和 Windows 系统\n- **全面监控**: 提供 GPU 硬件、性能、错误等全方位状态信息\n- **可编程管理**: 允许程序化修改 GPU 配置"
+            }
+          ],
+          "prefix_summary": "## 概述\n\n**NVIDIA Management Library (NVML)** 是一个基于 C 语言的编程接口，用于监控和管理数据中心 GPU 的各种状态。它是构建第三方应用程序的平台，也是 NVIDIA 官方支持的 `nvidia-smi` 工具的底层库。"
+        },
+        {
+          "title": "架构关系",
+          "node_id": "0004",
+          "line_num": 49,
+          "text": "## 架构关系\n\n```mermaid\ngraph TB\n    subgraph 应用层\n        A[\"nvidia-smi<br>#40;命令行工具#41;\"]\n        B[\"第三方监控工具\"]\n        C[\"自定义应用程序\"]\n    end\n    \n    subgraph API层\n        D[\"NVML C API\"]\n        E[\"NVML Python Bindings<br>#40;pynvml#41;\"]\n    end\n    \n    subgraph 驱动层\n        F[\"NVIDIA GPU Driver\"]\n    end\n    \n    subgraph 硬件层\n        G[\"Data Center GPU<br>#40;A100, H100, etc.#41;\"]\n    end\n    \n    A --> D\n    B --> D\n    B --> E\n    C --> D\n    C --> E\n    E --> D\n    D --> F\n    F --> G\n    \n    style D fill:#76b900\n    style E fill:#76b900\n    style F fill:#1a1a1a,color:#fff\n    style G fill:#76b900\n```",
+          "summary": "该部分文档主要描述了NVIDIA GPU监控与管理的架构关系，包括应用层（nvidia-smi、第三方监控工具、自定义应用程序）、API层（NVML C API及Python绑定pynvml）、驱动层（NVIDIA GPU Driver）和硬件层（数据中心GPU如A100、H100），并展示了各层次之间的调用流程。"
+        },
+        {
+          "title": "可查询状态 (Query-able States)",
+          "node_id": "0005",
+          "line_num": 87,
+          "text": "## 可查询状态 (Query-able States)",
+          "nodes": [
+            {
+              "title": "1. 设备识别 (Identification)",
+              "node_id": "0006",
+              "line_num": 89,
+              "text": "### 1. 设备识别 (Identification)\n\n**提供信息**:\n- 板卡序列号 (Board Serial Number)\n- PCI 设备 ID (PCI Device ID)\n- VBIOS/Inforom 版本号\n- 产品名称 (Product Name)\n\n**应用场景**: 资产管理、设备清单、故障追踪\n\n```python\nimport pynvml\n\npynvml.nvmlInit()\nhandle = pynvml.nvmlDeviceGetHandleByIndex(0)\n\n# 获取设备名称\nname = pynvml.nvmlDeviceGetName(handle)\n# 获取序列号\nserial = pynvml.nvmlDeviceGetSerial(handle)\n# 获取 UUID\nuuid = pynvml.nvmlDeviceGetUUID(handle)\n\nprint(f\"GPU: {name}, Serial: {serial}, UUID: {uuid}\")\n```",
+              "summary": "The partial document covers GPU identification using NVML, including key data fields (board serial number, PCI device ID, VBIOS/Inforom version, product name), application scenarios (asset management, inventory, fault tracking), and a Python code example using pynvml to retrieve device name, serial, and UUID."
+            },
+            {
+              "title": "2. GPU 利用率 (GPU Utilization)",
+              "node_id": "0007",
+              "line_num": 115,
+              "text": "### 2. GPU 利用率 (GPU Utilization)\n\n**监控指标**:\n- **计算资源利用率**: GPU 核心使用百分比\n- **内存接口利用率**: 显存带宽使用情况\n\n```mermaid\ngraph LR\n    A[\"GPU 利用率监控\"] --> B[\"计算利用率<br>#40;Compute Utilization#41;\"]\n    A --> C[\"内存利用率<br>#40;Memory Utilization#41;\"]\n    \n    B --> B1[\"0-100%<br>GPU 核心使用率\"]\n    C --> C1[\"0-100%<br>显存带宽使用率\"]\n    \n    style A fill:#667eea\n    style B fill:#f093fb\n    style C fill:#f093fb\n```\n\n**代码示例**:\n```python\n# 获取 GPU 利用率\nutilization = pynvml.nvmlDeviceGetUtilizationRates(handle)\nprint(f\"GPU 利用率: {utilization.gpu}%\")\nprint(f\"内存利用率: {utilization.memory}%\")\n```",
+              "summary": "The document covers GPU utilization monitoring, including compute resource utilization (GPU core percentage) and memory interface utilization (memory bandwidth usage). It includes a mermaid diagram illustrating these metrics and a Python code example using pynvml to retrieve utilization rates."
+            },
+            {
+              "title": "3. ECC 错误计数 (ECC Error Counts)",
+              "node_id": "0008",
+              "line_num": 142,
+              "text": "### 3. ECC 错误计数 (ECC Error Counts)\n\n**错误类型**:\n- **单比特可纠正错误** (Single Bit Correctable Errors)\n- **双比特可检测错误** (Double Bit Detectable Errors)\n\n**统计维度**:\n- 当前启动周期 (Current Boot Cycle)\n- GPU 生命周期累计 (Lifetime)\n\n```mermaid\ngraph TD\n    A[\"ECC 错误监控\"] --> B[\"单比特错误<br>#40;可自动纠正#41;\"]\n    A --> C[\"双比特错误<br>#40;不可纠正#41;\"]\n    \n    B --> B1[\"当前启动周期计数\"]\n    B --> B2[\"生命周期累计\"]\n    \n    C --> C1[\"当前启动周期计数\"]\n    C --> C2[\"生命周期累计\"]\n    \n    C --> D[\"⚠️ 需要关注<br>可能导致数据损坏\"]\n    \n    style A fill:#667eea\n    style B fill:#4ecdc4\n    style C fill:#ff6b6b\n    style D fill:#ff6b6b,color:#fff\n```\n\n**应用价值**: 预测硬件故障、评估 GPU 健康状况",
+              "summary": "The partial document describes ECC (Error Correction Code) error monitoring on GPUs, including two error types (single-bit correctable and double-bit detectable), two counting dimensions (current boot cycle and lifetime), and its application value for predicting hardware failures and assessing GPU health."
+            },
+            {
+              "title": "4. 温度与风扇速度 (Temperature & Fan Speed)",
+              "node_id": "0009",
+              "line_num": 173,
+              "text": "### 4. 温度与风扇速度 (Temperature & Fan Speed)\n\n**监控项**:\n- GPU 核心温度 (Core Temperature)\n- 风扇转速 (Fan Speed) - 仅适用于主动散热产品\n\n**代码示例**:\n```python\n# 获取温度\ntemp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)\nprint(f\"GPU 温度: {temp}°C\")\n\n# 获取风扇转速\ntry:\n    fan_speed = pynvml.nvmlDeviceGetFanSpeed(handle)\n    print(f\"风扇转速: {fan_speed}%\")\nexcept pynvml.NVMLError:\n    print(\"该 GPU 无风扇或为被动散热\")\n```",
+              "summary": "### 4. 温度与风扇速度 (Temperature & Fan Speed)\n\n**监控项**:\n- GPU 核心温度 (Core Temperature)\n- 风扇转速 (Fan Speed) - 仅适用于主动散热产品\n\n**代码示例**:\n```python\n# 获取温度\ntemp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)\nprint(f\"GPU 温度: {temp}°C\")\n\n# 获取风扇转速\ntry:\n    fan_speed = pynvml.nvmlDeviceGetFanSpeed(handle)\n    print(f\"风扇转速: {fan_speed}%\")\nexcept pynvml.NVMLError:\n    print(\"该 GPU 无风扇或为被动散热\")\n```"
+            },
+            {
+              "title": "5. 功耗管理 (Power Management)",
+              "node_id": "0010",
+              "line_num": 193,
+              "text": "### 5. 功耗管理 (Power Management)\n\n**监控指标**:\n- 当前功耗 (Current Power Draw)\n- 功耗限制 (Power Limit)\n- 默认功耗限制 (Default Power Limit)\n- 可配置功耗范围 (Enforceable Power Limit Range)\n\n```python\n# 获取功耗信息\npower = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0  # 转换为瓦特\npower_limit = pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000.0\n\nprint(f\"当前功耗: {power:.2f}W\")\nprint(f\"功耗限制: {power_limit:.2f}W\")\nprint(f\"功耗占比: {(power/power_limit)*100:.1f}%\")\n```",
+              "summary": "### 5. 功耗管理 (Power Management)\n\n**监控指标**:\n- 当前功耗 (Current Power Draw)\n- 功耗限制 (Power Limit)\n- 默认功耗限制 (Default Power Limit)\n- 可配置功耗范围 (Enforceable Power Limit Range)\n\n```python\n# 获取功耗信息\npower = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0  # 转换为瓦特\npower_limit = pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000.0\n\nprint(f\"当前功耗: {power:.2f}W\")\nprint(f\"功耗限制: {power_limit:.2f}W\")\nprint(f\"功耗占比: {(power/power_limit)*100:.1f}%\")\n```"
+            },
+            {
+              "title": "6. 活动计算进程 (Active Compute Processes)",
+              "node_id": "0011",
+              "line_num": 211,
+              "text": "### 6. 活动计算进程 (Active Compute Processes)\n\n**提供信息**:\n- 进程 ID (Process ID)\n- 进程名称 (Process Name)\n- 已分配 GPU 内存 (Allocated GPU Memory)\n\n```mermaid\ngraph LR\n    A[\"GPU 进程监控\"] --> B[\"获取进程列表\"]\n    B --> C[\"进程 1<br>PID: 12345<br>内存: 2GB\"]\n    B --> D[\"进程 2<br>PID: 67890<br>内存: 4GB\"]\n    B --> E[\"进程 N<br>...\"]\n    \n    style A fill:#667eea\n    style C fill:#95e1d3\n    style D fill:#95e1d3\n    style E fill:#95e1d3\n```\n\n**代码示例**:\n```python\n# 获取运行在 GPU 上的进程\nprocesses = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)\n\nfor proc in processes:\n    print(f\"PID: {proc.pid}\")\n    print(f\"使用显存: {proc.usedGpuMemory / 1024**2:.2f} MB\")\n```",
+              "summary": "该部分文档介绍了如何监控和获取GPU上的活动计算进程信息，包括进程ID、进程名称和已分配GPU内存，并通过流程图展示了从GPU进程监控到获取进程列表的过程，同时提供了Python代码示例，演示如何使用pynvml库获取运行在GPU上的进程及其显存使用情况。"
+            },
+            {
+              "title": "7. 时钟频率与性能状态 (Clocks & PState)",
+              "node_id": "0012",
+              "line_num": 241,
+              "text": "### 7. 时钟频率与性能状态 (Clocks & PState)\n\n**监控项**:\n- **时钟域** (Clock Domains):\n  - Graphics Clock (图形时钟)\n  - SM Clock (流多处理器时钟)\n  - Memory Clock (显存时钟)\n- **性能状态** (Performance State): P0 (最高性能) ~ P12 (最低性能)\n\n```mermaid\ngraph TB\n    A[\"GPU 性能监控\"] --> B[\"时钟频率\"]\n    A --> C[\"性能状态 #40;PState#41;\"]\n    \n    B --> B1[\"图形时钟<br>#40;Graphics Clock#41;\"]\n    B --> B2[\"SM 时钟<br>#40;Streaming Multiprocessor#41;\"]\n    B --> B3[\"显存时钟<br>#40;Memory Clock#41;\"]\n    \n    C --> C1[\"P0: 最高性能\"]\n    C --> C2[\"P1-P11: 中等性能\"]\n    C --> C3[\"P12: 最低性能\"]\n    \n    style A fill:#667eea\n    style B fill:#4ecdc4\n    style C fill:#f093fb\n    style C1 fill:#95e1d3\n```\n\n**代码示例**:\n```python\n# 获取时钟频率\ngraphics_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_GRAPHICS)\nmemory_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_MEM)\n\n# 获取性能状态\npstate = pynvml.nvmlDeviceGetPerformanceState(handle)\n\nprint(f\"图形时钟: {graphics_clock} MHz\")\nprint(f\"显存时钟: {memory_clock} MHz\")\nprint(f\"性能状态: P{pstate}\")\n```",
+              "summary": "该部分文档主要介绍了GPU的时钟频率与性能状态（PState）监控。具体包括三个时钟域（图形时钟、SM时钟、显存时钟）和性能状态范围（P0最高性能至P12最低性能），并通过Mermaid图表展示了监控层级关系，同时提供了使用pynvml库获取时钟频率和性能状态的Python代码示例。"
+            }
+          ],
+          "prefix_summary": "## 可查询状态 (Query-able States)"
+        },
+        {
+          "title": "可修改状态 (Modifiable States)",
+          "node_id": "0013",
+          "line_num": 283,
+          "text": "## 可修改状态 (Modifiable States)",
+          "nodes": [
+            {
+              "title": "1. ECC 模式 (ECC Mode)",
+              "node_id": "0014",
+              "line_num": 285,
+              "text": "### 1. ECC 模式 (ECC Mode)\n\n**功能**: 启用或禁用错误纠正码 (Error Correcting Code)\n\n**注意事项**:\n- 启用 ECC 会占用部分显存 (~10%)\n- 修改后需要重启 GPU 才能生效\n\n```python\n# 启用 ECC\npynvml.nvmlDeviceSetEccMode(handle, pynvml.NVML_FEATURE_ENABLED)\n\n# 禁用 ECC\npynvml.nvmlDeviceSetEccMode(handle, pynvml.NVML_FEATURE_DISABLED)\n```",
+              "summary": "### 1. ECC 模式 (ECC Mode)\n\n**功能**: 启用或禁用错误纠正码 (Error Correcting Code)\n\n**注意事项**:\n- 启用 ECC 会占用部分显存 (~10%)\n- 修改后需要重启 GPU 才能生效\n\n```python\n# 启用 ECC\npynvml.nvmlDeviceSetEccMode(handle, pynvml.NVML_FEATURE_ENABLED)\n\n# 禁用 ECC\npynvml.nvmlDeviceSetEccMode(handle, pynvml.NVML_FEATURE_DISABLED)\n```"
+            },
+            {
+              "title": "2. ECC 重置 (ECC Reset)",
+              "node_id": "0015",
+              "line_num": 301,
+              "text": "### 2. ECC 重置 (ECC Reset)\n\n**功能**: 清除单比特和双比特 ECC 错误计数\n\n```python\n# 清除 ECC 错误计数\npynvml.nvmlDeviceClearEccErrorCounts(handle, pynvml.NVML_VOLATILE_ECC)\n```",
+              "summary": "### 2. ECC 重置 (ECC Reset)\n\n**功能**: 清除单比特和双比特 ECC 错误计数\n\n```python\n# 清除 ECC 错误计数\npynvml.nvmlDeviceClearEccErrorCounts(handle, pynvml.NVML_VOLATILE_ECC)\n```"
+            },
+            {
+              "title": "3. 计算模式 (Compute Mode)",
+              "node_id": "0016",
+              "line_num": 310,
+              "text": "### 3. 计算模式 (Compute Mode)\n\n**模式类型**:\n\n| 模式 | 说明 | 应用场景 |\n|------|------|----------|\n| **Default** | 多个进程可并发运行 | 开发、测试环境 |\n| **Exclusive Process** | 仅允许一个进程独占 GPU | 高性能计算、深度学习训练 |\n| **Prohibited** | 禁止计算进程运行 | 维护、故障排查 |\n\n```mermaid\ngraph LR\n    A[\"计算模式\"] --> B[\"Default<br>#40;默认模式#41;\"]\n    A --> C[\"Exclusive Process<br>#40;独占模式#41;\"]\n    A --> D[\"Prohibited<br>#40;禁止模式#41;\"]\n    \n    B --> B1[\"多进程并发<br>共享 GPU\"]\n    C --> C1[\"单进程独占<br>最大性能\"]\n    D --> D1[\"禁止计算<br>仅监控\"]\n    \n    style A fill:#667eea\n    style B fill:#4ecdc4\n    style C fill:#f093fb\n    style D fill:#ff6b6b\n```\n\n**代码示例**:\n```python\n# 设置为独占模式\npynvml.nvmlDeviceSetComputeMode(handle, pynvml.NVML_COMPUTEMODE_EXCLUSIVE_PROCESS)\n\n# 设置为默认模式\npynvml.nvmlDeviceSetComputeMode(handle, pynvml.NVML_COMPUTEMODE_DEFAULT)\n```",
+              "summary": "该部分文档介绍了GPU计算模式的三种类型：Default（多进程并发，适用于开发测试）、Exclusive Process（单进程独占GPU，用于高性能计算和深度学习训练）和Prohibited（禁止计算，用于维护和故障排查），并通过表格和流程图进行说明，最后提供了使用pynvml库设置独占模式和默认模式的Python代码示例。"
+            },
+            {
+              "title": "4. 持久化模式 (Persistence Mode)",
+              "node_id": "0017",
+              "line_num": 345,
+              "text": "### 4. 持久化模式 (Persistence Mode)\n\n**功能**: 控制当没有活动客户端连接到 GPU 时，NVIDIA 驱动是否保持加载状态\n\n**优势**:\n- 减少首次启动延迟\n- 保持 GPU 初始化状态\n- 适合频繁启动/停止任务的场景\n\n```python\n# 启用持久化模式\npynvml.nvmlDeviceSetPersistenceMode(handle, pynvml.NVML_FEATURE_ENABLED)\n\n# 禁用持久化模式\npynvml.nvmlDeviceSetPersistenceMode(handle, pynvml.NVML_FEATURE_DISABLED)\n```",
+              "summary": "### 4. 持久化模式 (Persistence Mode)\n\n**功能**: 控制当没有活动客户端连接到 GPU 时，NVIDIA 驱动是否保持加载状态\n\n**优势**:\n- 减少首次启动延迟\n- 保持 GPU 初始化状态\n- 适合频繁启动/停止任务的场景\n\n```python\n# 启用持久化模式\npynvml.nvmlDeviceSetPersistenceMode(handle, pynvml.NVML_FEATURE_ENABLED)\n\n# 禁用持久化模式\npynvml.nvmlDeviceSetPersistenceMode(handle, pynvml.NVML_FEATURE_DISABLED)\n```"
+            }
+          ],
+          "prefix_summary": "## 可修改状态 (Modifiable States)"
+        },
+        {
+          "title": "完整监控示例",
+          "node_id": "0018",
+          "line_num": 362,
+          "text": "## 完整监控示例",
+          "nodes": [
+            {
+              "title": "Python 实现 GPU 监控脚本",
+              "node_id": "0019",
+              "line_num": 364,
+              "text": "### Python 实现 GPU 监控脚本\n\n```python\n#!/usr/bin/env python3\nimport pynvml\nimport time\n\ndef monitor_gpu(device_index=0, interval=1):\n    \"\"\"\n    持续监控 GPU 状态\n    \n    Args:\n        device_index: GPU 索引 (默认 0)\n        interval: 监控间隔秒数 (默认 1 秒)\n    \"\"\"\n    pynvml.nvmlInit()\n    \n    try:\n        handle = pynvml.nvmlDeviceGetHandleByIndex(device_index)\n        name = pynvml.nvmlDeviceGetName(handle)\n        \n        print(f\"监控 GPU: {name}\")\n        print(\"-\" * 80)\n        \n        while True:\n            # 利用率\n            util = pynvml.nvmlDeviceGetUtilizationRates(handle)\n            \n            # 内存\n            mem_info = pynvml.nvmlDeviceGetMemoryInfo(handle)\n            mem_used_gb = mem_info.used / 1024**3\n            mem_total_gb = mem_info.total / 1024**3\n            \n            # 温度\n            temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)\n            \n            # 功耗\n            power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000.0\n            \n            # 时钟\n            graphics_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_GRAPHICS)\n            \n            # 进程数量\n            processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)\n            \n            print(f\"GPU 利用率: {util.gpu:3d}% | \"\n                  f\"显存: {mem_used_gb:.1f}/{mem_total_gb:.1f}GB | \"\n                  f\"温度: {temp}°C | \"\n                  f\"功耗: {power:.1f}W | \"\n                  f\"时钟: {graphics_clock}MHz | \"\n                  f\"进程数: {len(processes)}\")\n            \n            time.sleep(interval)\n            \n    except KeyboardInterrupt:\n        print(\"\\n监控已停止\")\n    finally:\n        pynvml.nvmlShutdown()\n\nif __name__ == \"__main__\":\n    monitor_gpu()\n```",
+              "summary": "该部分文档提供了一个使用Python和pynvml库实现GPU监控的脚本。主要功能包括：初始化NVML、获取指定GPU信息（名称、利用率、显存使用、温度、功耗、时钟频率、运行进程数），并以指定间隔（默认1秒）持续打印这些数据，支持通过键盘中断停止监控并清理资源。"
+            }
+          ],
+          "prefix_summary": "## 完整监控示例"
+        },
+        {
+          "title": "与 nvidia-smi 的关系",
+          "node_id": "0020",
+          "line_num": 427,
+          "text": "## 与 nvidia-smi 的关系\n\n```mermaid\ngraph TB\n    A[\"nvidia-smi 命令\"] --> B[\"调用 NVML API\"]\n    B --> C[\"查询 GPU 状态\"]\n    C --> D[\"格式化输出\"]\n    \n    E[\"自定义程序\"] --> B\n    E --> F[\"自定义逻辑<br>#40;告警、日志、可视化#41;\"]\n    \n    style A fill:#76b900\n    style B fill:#667eea\n    style E fill:#4ecdc4\n    style F fill:#f093fb\n```\n\n**nvidia-smi 常用命令与 NVML 对应**:\n\n| nvidia-smi 命令      | NVML API                                 | 功能         |\n| ------------------ | ---------------------------------------- | ---------- |\n| `nvidia-smi`       | `nvmlDeviceGetUtilizationRates()`        | 查看 GPU 利用率 |\n| `nvidia-smi -q`    | 多个 NVML 查询函数                             | 详细查询所有信息   |\n| `nvidia-smi -l 1`  | 循环调用 NVML API                            | 持续监控       |\n| `nvidia-smi pmon`  | `nvmlDeviceGetComputeRunningProcesses()` | 进程监控       |\n| `nvidia-smi -pm 1` | `nvmlDeviceSetPersistenceMode()`         | 启用持久化模式    |",
+          "summary": "该部分文档主要介绍了nvidia-smi命令与NVML API之间的关系，通过流程图展示了nvidia-smi调用NVML API查询GPU状态并格式化输出的过程，以及自定义程序也可通过NVML API实现自定义逻辑。此外，还以表格形式列出了nvidia-smi常用命令对应的NVML API及其功能。"
+        },
+        {
+          "title": "应用场景",
+          "node_id": "0021",
+          "line_num": 454,
+          "text": "## 应用场景",
+          "nodes": [
+            {
+              "title": "1. 集群资源管理",
+              "node_id": "0022",
+              "line_num": 456,
+              "text": "### 1. 集群资源管理\n\n**场景**: 数据中心 GPU 集群的资源调度和监控\n\n**实现**:\n- 实时监控所有 GPU 的利用率和内存使用\n- 自动分配空闲 GPU 给新任务\n- 检测异常状态并告警",
+              "summary": "### 1. 集群资源管理\n\n**场景**: 数据中心 GPU 集群的资源调度和监控\n\n**实现**:\n- 实时监控所有 GPU 的利用率和内存使用\n- 自动分配空闲 GPU 给新任务\n- 检测异常状态并告警"
+            },
+            {
+              "title": "2. 深度学习训练监控",
+              "node_id": "0023",
+              "line_num": 465,
+              "text": "### 2. 深度学习训练监控\n\n**场景**: 监控训练任务的 GPU 使用情况\n\n**监控指标**:\n- GPU 利用率 (应保持在 80%+ 以充分利用硬件)\n- 显存使用 (避免 OOM 错误)\n- 温度和功耗 (确保在安全范围内)",
+              "summary": "### 2. 深度学习训练监控\n\n**场景**: 监控训练任务的 GPU 使用情况\n\n**监控指标**:\n- GPU 利用率 (应保持在 80%+ 以充分利用硬件)\n- 显存使用 (避免 OOM 错误)\n- 温度和功耗 (确保在安全范围内)"
+            },
+            {
+              "title": "3. 故障预测与诊断",
+              "node_id": "0024",
+              "line_num": 474,
+              "text": "### 3. 故障预测与诊断\n\n**场景**: 通过 ECC 错误计数预测硬件故障\n\n**策略**:\n- 监控 ECC 错误增长趋势\n- 双比特错误出现时立即告警\n- 定期生成健康报告",
+              "summary": "### 3. 故障预测与诊断\n\n**场景**: 通过 ECC 错误计数预测硬件故障\n\n**策略**:\n- 监控 ECC 错误增长趋势\n- 双比特错误出现时立即告警\n- 定期生成健康报告"
+            },
+            {
+              "title": "4. 性能优化",
+              "node_id": "0025",
+              "line_num": 483,
+              "text": "### 4. 性能优化\n\n**场景**: 分析 GPU 性能瓶颈\n\n**分析维度**:\n- 时钟频率是否达到最大值\n- 功耗限制是否导致降频\n- 温度是否触发热节流 (Thermal Throttling)",
+              "summary": "### 4. 性能优化\n\n**场景**: 分析 GPU 性能瓶颈\n\n**分析维度**:\n- 时钟频率是否达到最大值\n- 功耗限制是否导致降频\n- 温度是否触发热节流 (Thermal Throttling)"
+            }
+          ],
+          "prefix_summary": "## 应用场景"
+        },
+        {
+          "title": "安装与使用",
+          "node_id": "0026",
+          "line_num": 492,
+          "text": "## 安装与使用",
+          "nodes": [
+            {
+              "title": "安装 NVML",
+              "node_id": "0027",
+              "line_num": 494,
+              "text": "### 安装 NVML\n\nNVML 随 NVIDIA GPU 驱动一起安装，无需单独安装。\n\n**验证安装**:\n```bash\n# Linux\nldconfig -p | grep libnvidia-ml\n\n# Windows\ndir \"C:\\Program Files\\NVIDIA Corporation\\NVSMI\\nvml.dll\"\n```",
+              "summary": "### 安装 NVML\n\nNVML 随 NVIDIA GPU 驱动一起安装，无需单独安装。\n\n**验证安装**:\n```bash\n# Linux\nldconfig -p | grep libnvidia-ml\n\n# Windows\ndir \"C:\\Program Files\\NVIDIA Corporation\\NVSMI\\nvml.dll\"\n```"
+            },
+            {
+              "title": "Python Bindings 安装",
+              "node_id": "0028",
+              "line_num": 507,
+              "text": "### Python Bindings 安装\n\n```bash\npip install nvidia-ml-py3\n```",
+              "summary": "### Python Bindings 安装\n\n```bash\npip install nvidia-ml-py3\n```"
+            },
+            {
+              "title": "基础使用模板",
+              "node_id": "0029",
+              "line_num": 513,
+              "text": "### 基础使用模板\n\n```python\nimport pynvml\n\n# 1. 初始化\npynvml.nvmlInit()\n\ntry:\n    # 2. 获取设备句柄\n    device_count = pynvml.nvmlDeviceGetCount()\n    print(f\"检测到 {device_count} 个 GPU\")\n    \n    for i in range(device_count):\n        handle = pynvml.nvmlDeviceGetHandleByIndex(i)\n        \n        # 3. 查询信息\n        name = pynvml.nvmlDeviceGetName(handle)\n        print(f\"GPU {i}: {name}\")\n        \n        # 4. 执行其他操作...\n        \nfinally:\n    # 5. 清理\n    pynvml.nvmlShutdown()\n```",
+              "summary": "### 基础使用模板\n\n```python\nimport pynvml\n\n# 1. 初始化\npynvml.nvmlInit()\n\ntry:\n    # 2. 获取设备句柄\n    device_count = pynvml.nvmlDeviceGetCount()\n    print(f\"检测到 {device_count} 个 GPU\")\n    \n    for i in range(device_count):\n        handle = pynvml.nvmlDeviceGetHandleByIndex(i)\n        \n        # 3. 查询信息\n        name = pynvml.nvmlDeviceGetName(handle)\n        print(f\"GPU {i}: {name}\")\n        \n        # 4. 执行其他操作...\n        \nfinally:\n    # 5. 清理\n    pynvml.nvmlShutdown()\n```"
+            }
+          ],
+          "prefix_summary": "## 安装与使用"
+        },
+        {
+          "title": "pyNVML 详解",
+          "node_id": "0030",
+          "line_num": 540,
+          "text": "## pyNVML 详解",
+          "nodes": [
+            {
+              "title": "Python Bindings 概述",
+              "node_id": "0031",
+              "line_num": 542,
+              "text": "### Python Bindings 概述\n\n**pyNVML** 是 NVML C 库的 Python 封装，提供了 Pythonic 的接口来访问 GPU 管理功能。它是基于 `ctypes` 实现的，自动处理内存分配、指针传递和类型转换。\n\n**核心特性**:\n- 自动内存管理，无需手动分配结构体\n- 将 C 返回码转换为 Python 异常\n- 支持 Python 2.5+ 和 Python 3.x\n- 自动处理字符串编码转换",
+              "summary": "### Python Bindings 概述\n\n**pyNVML** 是 NVML C 库的 Python 封装，提供了 Pythonic 的接口来访问 GPU 管理功能。它是基于 `ctypes` 实现的，自动处理内存分配、指针传递和类型转换。\n\n**核心特性**:\n- 自动内存管理，无需手动分配结构体\n- 将 C 返回码转换为 Python 异常\n- 支持 Python 2.5+ 和 Python 3.x\n- 自动处理字符串编码转换"
+            },
+            {
+              "title": "C 到 Python 的转换规则",
+              "node_id": "0032",
+              "line_num": 552,
+              "text": "### C 到 Python 的转换规则",
+              "nodes": [
+                {
+                  "title": "1. 返回码转换为异常",
+                  "node_id": "0033",
+                  "line_num": 554,
+                  "text": "#### 1. 返回码转换为异常\n\n**C 风格**:\n```c\nnvmlReturn_t result = nvmlDeviceGetCount(&deviceCount);\nif (result != NVML_SUCCESS) {\n    // 错误处理\n}\n```\n\n**Python 风格**:\n```python\ntry:\n    device_count = nvmlDeviceGetCount()\nexcept NVMLError as error:\n    print(f\"错误: {error}\")\n```\n\n```mermaid\ngraph LR\n    A[\"C 函数返回错误码\"] --> B[\"pyNVML 检测非成功码\"]\n    B --> C[\"抛出对应的 Python 异常\"]\n    C --> D[\"应用层捕获异常\"]\n    \n    style A fill:#1a1a1a,color:#fff\n    style B fill:#667eea\n    style C fill:#ff6b6b\n    style D fill:#4ecdc4\n```",
+                  "summary": "该部分文档主要介绍了将C风格返回码转换为Python异常的处理方式，展示了C语言中的错误码检查与Python中的异常捕获对比，并通过流程图说明了pyNVML将非成功码转换为异常供应用层捕获的过程。"
+                },
+                {
+                  "title": "2. 输出参数转换为返回值",
+                  "node_id": "0034",
+                  "line_num": 584,
+                  "text": "#### 2. 输出参数转换为返回值\n\n**C 风格** (输出参数通过指针传递):\n```c\nnvmlReturn_t nvmlDeviceGetEccMode(nvmlDevice_t device,\n                                  nvmlEnableState_t *current,\n                                  nvmlEnableState_t *pending);\n\n// 使用\nnvmlEnableState_t current, pending;\nnvmlDeviceGetEccMode(handle, &current, &pending);\n```\n\n**Python 风格** (输出参数作为返回值):\n```python\n# Python 自动处理指针，直接返回多个值\n(current, pending) = nvmlDeviceGetEccMode(handle)\n```\n\n**转换规则**: C 函数的输出参数按从左到右的顺序作为 Python 函数的返回值",
+                  "summary": "#### 2. 输出参数转换为返回值\n\n**C 风格** (输出参数通过指针传递):\n```c\nnvmlReturn_t nvmlDeviceGetEccMode(nvmlDevice_t device,\n                                  nvmlEnableState_t *current,\n                                  nvmlEnableState_t *pending);\n\n// 使用\nnvmlEnableState_t current, pending;\nnvmlDeviceGetEccMode(handle, &current, &pending);\n```\n\n**Python 风格** (输出参数作为返回值):\n```python\n# Python 自动处理指针，直接返回多个值\n(current, pending) = nvmlDeviceGetEccMode(handle)\n```\n\n**转换规则**: C 函数的输出参数按从左到右的顺序作为 Python 函数的返回值"
+                },
+                {
+                  "title": "3. 结构体转换为类",
+                  "node_id": "0035",
+                  "line_num": 605,
+                  "text": "#### 3. 结构体转换为类\n\n**C 结构体定义**:\n```c\ntypedef struct nvmlMemory_st {\n    unsigned long long total;\n    unsigned long long free;\n    unsigned long long used;\n} nvmlMemory_t;\n\nnvmlReturn_t nvmlDeviceGetMemoryInfo(nvmlDevice_t device,\n                                     nvmlMemory_t *memory);\n```\n\n**Python 类访问**:\n```python\n# 返回 ctypes 结构体对象\ninfo = nvmlDeviceGetMemoryInfo(handle)\n\n# 通过属性访问成员\nprint(f\"总显存: {info.total} bytes\")\nprint(f\"空闲显存: {info.free} bytes\")\nprint(f\"已用显存: {info.used} bytes\")\n\n# 计算使用率\nusage_percent = (info.used / info.total) * 100\nprint(f\"显存使用率: {usage_percent:.1f}%\")\n```",
+                  "summary": "The document explains how a C structure (`nvmlMemory_st`) with fields `total`, `free`, and `used` is converted to a Python class for accessing GPU memory info via `nvmlDeviceGetMemoryInfo`. It demonstrates retrieving a ctypes structure object, accessing its attributes, and calculating memory usage percentage."
+                },
+                {
+                  "title": "4. 字符串缓冲区自动管理",
+                  "node_id": "0036",
+                  "line_num": 634,
+                  "text": "#### 4. 字符串缓冲区自动管理\n\n**C 风格** (需要手动分配缓冲区):\n```c\nchar version[NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE];\nnvmlSystemGetDriverVersion(version, NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE);\n```\n\n**Python 风格** (自动处理):\n```python\n# Python 自动分配缓冲区并返回字符串\nversion = nvmlSystemGetDriverVersion()\nprint(f\"驱动版本: {version}\")\n```",
+                  "summary": "#### 4. 字符串缓冲区自动管理\n\n**C 风格** (需要手动分配缓冲区):\n```c\nchar version[NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE];\nnvmlSystemGetDriverVersion(version, NVML_SYSTEM_DRIVER_VERSION_BUFFER_SIZE);\n```\n\n**Python 风格** (自动处理):\n```python\n# Python 自动分配缓冲区并返回字符串\nversion = nvmlSystemGetDriverVersion()\nprint(f\"驱动版本: {version}\")\n```"
+                }
+              ],
+              "prefix_summary": "### C 到 Python 的转换规则"
+            },
+            {
+              "title": "异常处理机制",
+              "node_id": "0037",
+              "line_num": 649,
+              "text": "### 异常处理机制",
+              "nodes": [
+                {
+                  "title": "异常层次结构",
+                  "node_id": "0038",
+                  "line_num": 651,
+                  "text": "#### 异常层次结构\n\n```mermaid\ngraph TD\n    A[\"NVMLError<br>#40;基类#41;\"] --> B[\"NVMLError_Uninitialized\"]\n    A --> C[\"NVMLError_InvalidArgument\"]\n    A --> D[\"NVMLError_NotSupported\"]\n    A --> E[\"NVMLError_NoPermission\"]\n    A --> F[\"NVMLError_AlreadyInitialized\"]\n    A --> G[\"NVMLError_NotFound\"]\n    A --> H[\"NVMLError_InsufficientSize\"]\n    A --> I[\"...更多异常类型\"]\n    \n    style A fill:#667eea\n    style B fill:#ff6b6b\n    style C fill:#ff6b6b\n    style D fill:#ff6b6b\n    style E fill:#ff6b6b\n```",
+                  "summary": "#### 异常层次结构\n\n```mermaid\ngraph TD\n    A[\"NVMLError<br>#40;基类#41;\"] --> B[\"NVMLError_Uninitialized\"]\n    A --> C[\"NVMLError_InvalidArgument\"]\n    A --> D[\"NVMLError_NotSupported\"]\n    A --> E[\"NVMLError_NoPermission\"]\n    A --> F[\"NVMLError_AlreadyInitialized\"]\n    A --> G[\"NVMLError_NotFound\"]\n    A --> H[\"NVMLError_InsufficientSize\"]\n    A --> I[\"...更多异常类型\"]\n    \n    style A fill:#667eea\n    style B fill:#ff6b6b\n    style C fill:#ff6b6b\n    style D fill:#ff6b6b\n    style E fill:#ff6b6b\n```"
+                },
+                {
+                  "title": "异常命名规则",
+                  "node_id": "0039",
+                  "line_num": 671,
+                  "text": "#### 异常命名规则\n\nC 错误码到 Python 异常的转换规则:\n\n| C 错误码 | Python 异常 | 说明 |\n|---------|------------|------|\n| `NVML_ERROR_UNINITIALIZED` | `NVMLError_Uninitialized` | NVML 未初始化 |\n| `NVML_ERROR_INVALID_ARGUMENT` | `NVMLError_InvalidArgument` | 无效参数 |\n| `NVML_ERROR_NOT_SUPPORTED` | `NVMLError_NotSupported` | 功能不支持 |\n| `NVML_ERROR_NO_PERMISSION` | `NVMLError_NoPermission` | 权限不足 |\n| `NVML_ERROR_ALREADY_INITIALIZED` | `NVMLError_AlreadyInitialized` | 已初始化 |\n| `NVML_ERROR_NOT_FOUND` | `NVMLError_NotFound` | 未找到 |\n| `NVML_ERROR_INSUFFICIENT_SIZE` | `NVMLError_InsufficientSize` | 缓冲区不足 |\n| `NVML_ERROR_LIBRARY_NOT_FOUND` | `NVMLError_LibraryNotFound` | 库文件未找到 |",
+                  "summary": "该文档部分介绍了C错误码到Python异常的命名规则，通过表格列出了多个错误码（如NVML_ERROR_UNINITIALIZED等）及其对应的Python异常类（如NVMLError_Uninitialized等）和说明，涵盖了未初始化、无效参数、权限不足等常见错误情况。"
+                },
+                {
+                  "title": "异常处理示例",
+                  "node_id": "0040",
+                  "line_num": 686,
+                  "text": "#### 异常处理示例\n\n**通用异常捕获**:\n```python\ntry:\n    device_count = nvmlDeviceGetCount()\nexcept NVMLError as error:\n    print(f\"NVML 错误: {error}\")\n```\n\n**精确异常捕获**:\n```python\ntry:\n    nvmlInit()\n    device_count = nvmlDeviceGetCount()\nexcept NVMLError_Uninitialized:\n    print(\"错误: NVML 未初始化\")\nexcept NVMLError_LibraryNotFound:\n    print(\"错误: 未找到 NVML 库，请安装 NVIDIA 驱动\")\nexcept NVMLError_NoPermission:\n    print(\"错误: 权限不足，请使用 sudo 运行\")\nexcept NVMLError as error:\n    print(f\"其他 NVML 错误: {error}\")\n```\n\n**多层异常处理**:\n```python\ndef safe_get_gpu_info(device_index):\n    \"\"\"安全获取 GPU 信息，包含完整异常处理\"\"\"\n    try:\n        nvmlInit()\n    except NVMLError_AlreadyInitialized:\n        pass  # 已初始化，继续执行\n    except NVMLError_LibraryNotFound:\n        return None, \"NVIDIA 驱动未安装\"\n    \n    try:\n        handle = nvmlDeviceGetHandleByIndex(device_index)\n        name = nvmlDeviceGetName(handle)\n        return name, None\n    except NVMLError_InvalidArgument:\n        return None, f\"无效的设备索引: {device_index}\"\n    except NVMLError_NotFound:\n        return None, \"未找到 GPU 设备\"\n    except NVMLError as error:\n        return None, str(error)\n    finally:\n        try:\n            nvmlShutdown()\n        except:\n            pass\n```",
+                  "summary": "The partial document covers three approaches to handling NVML (NVIDIA Management Library) exceptions: generic exception catching, precise exception catching with specific error types, and a multi-layer exception handling example in a function that safely retrieves GPU information. It demonstrates how to catch common NVML errors such as uninitialized library, library not found, permission issues, invalid arguments, and device not found, along with proper resource cleanup using `finally`."
+                }
+              ],
+              "prefix_summary": "### 异常处理机制"
+            },
+            {
+              "title": "常量和枚举",
+              "node_id": "0041",
+              "line_num": 739,
+              "text": "### 常量和枚举",
+              "nodes": [
+                {
+                  "title": "常用常量",
+                  "node_id": "0042",
+                  "line_num": 741,
+                  "text": "#### 常用常量\n\npyNVML 暴露了所有 NVML 常量和枚举值:\n\n```python\n# 温度传感器类型\npynvml.NVML_TEMPERATURE_GPU          # GPU 核心温度\npynvml.NVML_TEMPERATURE_COUNT        # 温度传感器数量\n\n# 时钟类型\npynvml.NVML_CLOCK_GRAPHICS           # 图形时钟\npynvml.NVML_CLOCK_SM                 # SM 时钟\npynvml.NVML_CLOCK_MEM                # 显存时钟\npynvml.NVML_CLOCK_VIDEO              # 视频编码时钟\n\n# 计算模式\npynvml.NVML_COMPUTEMODE_DEFAULT                # 默认模式\npynvml.NVML_COMPUTEMODE_EXCLUSIVE_PROCESS      # 独占进程模式\npynvml.NVML_COMPUTEMODE_PROHIBITED             # 禁止模式\n\n# ECC 模式\npynvml.NVML_FEATURE_DISABLED         # 禁用\npynvml.NVML_FEATURE_ENABLED          # 启用\n\n# 性能状态\npynvml.NVML_PSTATE_0                 # P0 (最高性能)\npynvml.NVML_PSTATE_15                # P15 (最低性能)\n```",
+                  "summary": "该部分文档主要介绍了 pyNVML 中暴露的常用常量和枚举值，包括温度传感器类型（如 GPU 核心温度、温度传感器数量）、时钟类型（图形、SM、显存、视频编码时钟）、计算模式（默认、独占进程、禁止）、ECC 模式（禁用、启用）以及性能状态（P0 最高性能到 P15 最低性能）。"
+                },
+                {
+                  "title": "NVML_VALUE_NOT_AVAILABLE 处理",
+                  "node_id": "0043",
+                  "line_num": 770,
+                  "text": "#### NVML_VALUE_NOT_AVAILABLE 处理\n\n在 C 库中，`NVML_VALUE_NOT_AVAILABLE` 常量用于表示值不可用。在 Python 中，这被映射为 `None`:\n\n```python\n# C 风格\nif (value == NVML_VALUE_NOT_AVAILABLE) {\n    // 处理不可用情况\n}\n\n# Python 风格\nvalue = nvmlDeviceGetSomeValue(handle)\nif value is None:\n    print(\"该值不可用\")\n```",
+                  "summary": "#### NVML_VALUE_NOT_AVAILABLE 处理\n\n在 C 库中，`NVML_VALUE_NOT_AVAILABLE` 常量用于表示值不可用。在 Python 中，这被映射为 `None`:\n\n```python\n# C 风格\nif (value == NVML_VALUE_NOT_AVAILABLE) {\n    // 处理不可用情况\n}\n\n# Python 风格\nvalue = nvmlDeviceGetSomeValue(handle)\nif value is None:\n    print(\"该值不可用\")\n```"
+                }
+              ],
+              "prefix_summary": "### 常量和枚举"
+            },
+            {
+              "title": "版本历史",
+              "node_id": "0044",
+              "line_num": 786,
+              "text": "### 版本历史\n\n```mermaid\ngantt\n    title pyNVML 版本演进\n    dateFormat YYYY-MM\n    axisFormat %Y\n    \n    section 早期版本\n    v2.285 首次发布 :2011-01, 2012-01\n    v3.295 功能扩展 :2012-01, 2013-01\n    \n    section 成熟期\n    v4.304 稳定版本 :2013-01, 2015-01\n    v5.319 - v7.352 持续更新 :2015-01, 2018-01\n    \n    section 现代版本\n    v10.418 Python 3 支持 :2018-01, 2020-01\n    v11.515 完整 Python 3 支持 :2020-01, 2026-01\n```\n\n**主要版本里程碑**:\n\n| 版本 | 发布时间 | 主要更新 |\n|------|---------|---------|\n| **2.285.0** | 早期 | 首次发布，支持 Python 2.0 和 3.0 |\n| **3.295.0** | - | 更新 nvidia_smi.py 工具，增强错误处理 |\n| **4.304.0** | - | 新增 NVML 4.304 函数 |\n| **4.304.3** | - | 修复 `nvmlUnitGetDeviceCount` bug |\n| **5.319.0** | - | 新增 NVML 5.319 函数 |\n| **6.340.0** | - | 新增 NVML 6.340 函数 |\n| **7.346.0** | - | 新增 NVML 7.346 函数 |\n| **7.352.0** | - | 新增 NVML 7.352 函数 |\n| **10.418** | ~2018 | 修复 Python 3.x 兼容性问题<br>用 example.py 替换 nvidia_smi.py |\n| **11.515.48** | ~2020 | **完整 Python 3 支持**<br>更新 API 与 NVML 同步<br>自动字节/字符串转换 |",
+              "summary": "该部分文档主要介绍了pyNVML库的版本历史，包括通过甘特图展示的版本演进时间线（从早期到现代版本），以及一个里程碑表格列出各版本（从2.285.0到11.515.48）的主要更新内容，如首次发布、功能扩展、Python 3兼容性支持、API同步等。"
+            },
+            {
+              "title": "完整功能示例",
+              "node_id": "0045",
+              "line_num": 822,
+              "text": "### 完整功能示例",
+              "nodes": [
+                {
+                  "title": "示例 1: 获取驱动版本和设备信息",
+                  "node_id": "0046",
+                  "line_num": 824,
+                  "text": "#### 示例 1: 获取驱动版本和设备信息\n\n```python\nfrom pynvml import *\n\n# 初始化\nnvmlInit()\n\n# 获取驱动版本\ndriver_version = nvmlSystemGetDriverVersion()\nprint(f\"Driver Version: {driver_version}\")\n\n# 获取设备数量\ndevice_count = nvmlDeviceGetCount()\nprint(f\"发现 {device_count} 个 GPU 设备\")\n\n# 遍历所有设备\nfor i in range(device_count):\n    handle = nvmlDeviceGetHandleByIndex(i)\n    name = nvmlDeviceGetName(handle)\n    print(f\"Device {i}: {name}\")\n\n# 清理\nnvmlShutdown()\n```\n\n**输出示例**:\n```\nDriver Version: 11.515.48\n发现 2 个 GPU 设备\nDevice 0: Tesla K40c\nDevice 1: Tesla V100-SXM2-16GB\n```",
+                  "summary": "该文档展示了一个使用pynvml库的示例，主要涵盖如何初始化NVML、获取驱动版本、查询GPU设备数量、遍历所有设备获取名称，以及最后清理资源。输出示例显示了驱动版本号和两个GPU设备（Tesla K40c和Tesla V100-SXM2-16GB）的信息。"
+                },
+                {
+                  "title": "示例 2: 获取显存信息",
+                  "node_id": "0047",
+                  "line_num": 858,
+                  "text": "#### 示例 2: 获取显存信息\n\n```python\nfrom pynvml import *\n\nnvmlInit()\nhandle = nvmlDeviceGetHandleByIndex(0)\n\n# 获取显存信息 (返回结构体对象)\ninfo = nvmlDeviceGetMemoryInfo(handle)\n\nprint(f\"总显存: {info.total / 1024**3:.2f} GB\")\nprint(f\"空闲显存: {info.free / 1024**3:.2f} GB\")\nprint(f\"已用显存: {info.used / 1024**3:.2f} GB\")\nprint(f\"使用率: {(info.used / info.total) * 100:.1f}%\")\n\nnvmlShutdown()\n```",
+                  "summary": "#### 示例 2: 获取显存信息\n\n```python\nfrom pynvml import *\n\nnvmlInit()\nhandle = nvmlDeviceGetHandleByIndex(0)\n\n# 获取显存信息 (返回结构体对象)\ninfo = nvmlDeviceGetMemoryInfo(handle)\n\nprint(f\"总显存: {info.total / 1024**3:.2f} GB\")\nprint(f\"空闲显存: {info.free / 1024**3:.2f} GB\")\nprint(f\"已用显存: {info.used / 1024**3:.2f} GB\")\nprint(f\"使用率: {(info.used / info.total) * 100:.1f}%\")\n\nnvmlShutdown()\n```"
+                },
+                {
+                  "title": "示例 3: ECC 模式查询",
+                  "node_id": "0048",
+                  "line_num": 877,
+                  "text": "#### 示例 3: ECC 模式查询\n\n```python\nfrom pynvml import *\n\nnvmlInit()\nhandle = nvmlDeviceGetHandleByIndex(0)\n\n# 获取 ECC 模式 (返回两个值)\n(current, pending) = nvmlDeviceGetEccMode(handle)\n\nprint(f\"当前 ECC 模式: {'启用' if current else '禁用'}\")\nprint(f\"待生效 ECC 模式: {'启用' if pending else '禁用'}\")\n\nnvmlShutdown()\n```",
+                  "summary": "#### 示例 3: ECC 模式查询\n\n```python\nfrom pynvml import *\n\nnvmlInit()\nhandle = nvmlDeviceGetHandleByIndex(0)\n\n# 获取 ECC 模式 (返回两个值)\n(current, pending) = nvmlDeviceGetEccMode(handle)\n\nprint(f\"当前 ECC 模式: {'启用' if current else '禁用'}\")\nprint(f\"待生效 ECC 模式: {'启用' if pending else '禁用'}\")\n\nnvmlShutdown()\n```"
+                }
+              ],
+              "prefix_summary": "### 完整功能示例"
+            }
+          ],
+          "prefix_summary": "## pyNVML 详解"
+        },
+        {
+          "title": "最佳实践",
+          "node_id": "0049",
+          "line_num": 894,
+          "text": "## 最佳实践",
+          "nodes": [
+            {
+              "title": "1. 错误处理",
+              "node_id": "0050",
+              "line_num": 896,
+              "text": "### 1. 错误处理\n\n```python\ntry:\n    pynvml.nvmlInit()\n    handle = pynvml.nvmlDeviceGetHandleByIndex(0)\n    # 执行操作...\nexcept pynvml.NVMLError as error:\n    print(f\"NVML 错误: {error}\")\nfinally:\n    pynvml.nvmlShutdown()\n```",
+              "summary": "### 1. 错误处理\n\n```python\ntry:\n    pynvml.nvmlInit()\n    handle = pynvml.nvmlDeviceGetHandleByIndex(0)\n    # 执行操作...\nexcept pynvml.NVMLError as error:\n    print(f\"NVML 错误: {error}\")\nfinally:\n    pynvml.nvmlShutdown()\n```"
+            },
+            {
+              "title": "2. 权限管理",
+              "node_id": "0051",
+              "line_num": 909,
+              "text": "### 2. 权限管理\n\n**注意**: 修改 GPU 状态 (如计算模式、ECC 模式) 需要 root/管理员权限\n\n```bash\n# Linux\nsudo python gpu_config.py\n\n# Windows (以管理员身份运行)\n```",
+              "summary": "### 2. 权限管理\n\n**注意**: 修改 GPU 状态 (如计算模式、ECC 模式) 需要 root/管理员权限\n\n```bash\n# Linux\nsudo python gpu_config.py\n\n# Windows (以管理员身份运行)\n```"
+            },
+            {
+              "title": "3. 性能考虑",
+              "node_id": "0052",
+              "line_num": 920,
+              "text": "### 3. 性能考虑\n\n- 避免过于频繁的查询 (建议间隔 ≥ 100ms)\n- 批量查询多个指标比单独查询更高效\n- 使用持久化模式减少驱动加载开销",
+              "summary": "### 3. 性能考虑\n\n- 避免过于频繁的查询 (建议间隔 ≥ 100ms)\n- 批量查询多个指标比单独查询更高效\n- 使用持久化模式减少驱动加载开销"
+            }
+          ],
+          "prefix_summary": "## 最佳实践"
+        },
+        {
+          "title": "参考资源",
+          "node_id": "0053",
+          "line_num": 926,
+          "text": "## 参考资源\n\n- 📚 [NVML API Reference](https://docs.nvidia.com/deploy/nvml-api/index.html)\n- 🐍 [NVML Python Bindings (pynvml)](https://pypi.org/project/nvidia-ml-py/)\n- 🔧 [nvidia-smi 文档](https://developer.nvidia.com/nvidia-system-management-interface)\n- 📖 [NVIDIA Data Center GPU 文档](https://docs.nvidia.com/datacenter/tesla/)\n\n---\n\n**关键要点**: NVML 是 GPU 监控和管理的核心库，提供了全面的查询和配置能力。通过 Python Bindings，可以轻松构建自定义监控、调度和优化工具，是数据中心 GPU 管理的必备技术。",
+          "summary": "## 参考资源\n\n- 📚 [NVML API Reference](https://docs.nvidia.com/deploy/nvml-api/index.html)\n- 🐍 [NVML Python Bindings (pynvml)](https://pypi.org/project/nvidia-ml-py/)\n- 🔧 [nvidia-smi 文档](https://developer.nvidia.com/nvidia-system-management-interface)\n- 📖 [NVIDIA Data Center GPU 文档](https://docs.nvidia.com/datacenter/tesla/)\n\n---\n\n**关键要点**: NVML 是 GPU 监控和管理的核心库，提供了全面的查询和配置能力。通过 Python Bindings，可以轻松构建自定义监控、调度和优化工具，是数据中心 GPU 管理的必备技术。"
+        }
+      ],
+      "prefix_summary": "# Tool_NVML英伟达管理库_NVIDIA-Management-Library"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "doc_name": "json jq 使用技巧",
+  "line_count": 122,
+  "structure": [
+    {
+      "title": "jq 命令使用笔记",
+      "node_id": "0001",
+      "line_num": 2,
+      "text": "# jq 命令使用笔记",
+      "nodes": [
+        {
+          "title": "基础使用",
+          "node_id": "0002",
+          "line_num": 4,
+          "text": "## 基础使用\n\njq 是一个轻量级且灵活的命令行 JSON 处理工具。",
+          "nodes": [
+            {
+              "title": "基本格式化",
+              "node_id": "0003",
+              "line_num": 8,
+              "text": "### 基本格式化\n\n基本用法：\n\n```bash\njq '.' filename.json\n```\n\n从标准输入读取 JSON（例如通过管道）：\n\n```bash\necho '{\"name\":\"John\",\"age\":30}' | jq '.'\n```\n\n输出：\n\n```json\n{\n  \"name\": \"John\",\n  \"age\": 30\n}\n```\n\n保存格式化输出到文件：\n\n```bash\njq '.' input.json > output.json\n```",
+              "summary": "### 基本格式化\n\n基本用法：\n\n```bash\njq '.' filename.json\n```\n\n从标准输入读取 JSON（例如通过管道）：\n\n```bash\necho '{\"name\":\"John\",\"age\":30}' | jq '.'\n```\n\n输出：\n\n```json\n{\n  \"name\": \"John\",\n  \"age\": 30\n}\n```\n\n保存格式化输出到文件：\n\n```bash\njq '.' input.json > output.json\n```"
+            },
+            {
+              "title": "格式化选项",
+              "node_id": "0004",
+              "line_num": 37,
+              "text": "### 格式化选项\n\n- 紧凑输出（无格式化）：`jq -c '.' file.json`\n- 控制缩进（4个空格）：`jq --indent 4 '.' file.json`\n- 带颜色输出（终端默认）：`jq --color-output '.' file.json`\n- 无颜色输出：`jq --monochrome-output '.' file.json`",
+              "summary": "### 格式化选项\n\n- 紧凑输出（无格式化）：`jq -c '.' file.json`\n- 控制缩进（4个空格）：`jq --indent 4 '.' file.json`\n- 带颜色输出（终端默认）：`jq --color-output '.' file.json`\n- 无颜色输出：`jq --monochrome-output '.' file.json`"
+            }
+          ],
+          "prefix_summary": "## 基础使用\n\njq 是一个轻量级且灵活的命令行 JSON 处理工具。"
+        },
+        {
+          "title": "过滤器使用",
+          "node_id": "0005",
+          "line_num": 44,
+          "text": "## 过滤器使用",
+          "nodes": [
+            {
+              "title": "身份过滤器",
+              "node_id": "0006",
+              "line_num": 46,
+              "text": "### 身份过滤器\n\n在 `jq '.' input.json > output.json` 命令中，`'.'` 是 jq 的过滤器表达式。\n\n`.` 符号表示\"当前对象\"或\"身份过滤器\"。它简单地输出输入的 JSON 数据，不做任何修改或过滤。",
+              "summary": "### 身份过滤器\n\n在 `jq '.' input.json > output.json` 命令中，`'.'` 是 jq 的过滤器表达式。\n\n`.` 符号表示\"当前对象\"或\"身份过滤器\"。它简单地输出输入的 JSON 数据，不做任何修改或过滤。"
+            },
+            {
+              "title": "递归遍历",
+              "node_id": "0007",
+              "line_num": 52,
+              "text": "### 递归遍历\n\n要查找 JSON 中所有特定字段，可以使用递归下降操作符：\n\n```bash\njq '..|objects|select(has(\"_type\"))|._type' file.json\n```\n\n这个命令的详细解释：\n\n1. `..` (递归下降操作符)：\n    \n    - 递归地遍历 JSON 文档中的每个元素\n    - 产生文档中的所有值，包括对象、数组、字符串、数字等\n    - 相当于\"深度优先搜索\"，遍历整个 JSON 树结构\n2. `objects`：\n    \n    - 只保留类型为对象的值\n    - 过滤掉所有非对象值（如数组、字符串、数字、布尔值等）\n3. `select(has(\"_type\"))`：\n    \n    - `has(\"_type\")` 函数检查对象是否包含 `_type` 字段\n    - `select()` 函数根据条件过滤输入\n    - 组合起来，只保留那些包含 `_type` 字段的对象\n4. `._type`：\n    \n    - 从通过前面过滤器的每个对象中提取 `_type` 字段的值",
+              "summary": ""
+            }
+          ],
+          "prefix_summary": "## 过滤器使用"
+        },
+        {
+          "title": "Python 中的 JSON 格式化",
+          "node_id": "0008",
+          "line_num": 80,
+          "text": "## Python 中的 JSON 格式化\n\n在 Python 中使用 `json.dump()` 进行美观格式化：\n\n```python\nimport json\n\nwith open(data_file_name, 'w') as f:\n    json.dump(data, f, ensure_ascii=False, indent=4)\n```\n\n参数说明：\n\n- `ensure_ascii=False`：保证中文字符能够正确显示，不会被转换为 Unicode 转义序列\n- `indent=4`：使用 4 个空格进行缩进\n\n可选的缩进值：\n\n- `indent=2`：使用 2 个空格缩进\n- `indent=4`：使用 4 个空格缩进\n- `indent='\\t'`：使用制表符缩进",
+          "summary": "## Python 中的 JSON 格式化\n\n在 Python 中使用 `json.dump()` 进行美观格式化：\n\n```python\nimport json\n\nwith open(data_file_name, 'w') as f:\n    json.dump(data, f, ensure_ascii=False, indent=4)\n```\n\n参数说明：\n\n- `ensure_ascii=False`：保证中文字符能够正确显示，不会被转换为 Unicode 转义序列\n- `indent=4`：使用 4 个空格进行缩进\n\n可选的缩进值：\n\n- `indent=2`：使用 2 个空格缩进\n- `indent=4`：使用 4 个空格缩进\n- `indent='\\t'`：使用制表符缩进"
+        },
+        {
+          "title": "常见问题",
+          "node_id": "0009",
+          "line_num": 102,
+          "text": "## 常见问题\n\n如果遇到语法错误：\n\n```\njq: error: syntax error, unexpected IDENT, expecting $end (Unix shell quoting issues?)\n```\n\n可以尝试以下替代语法：\n\n```bash\njq '.. | ._type?' file.json\n```\n\n或\n\n```bash\njq '..|._type?' file.json\n```\n\n使用 `?` 使字段访问变为可选，这样对于没有该字段的对象不会报错。",
+          "summary": "## 常见问题\n\n如果遇到语法错误：\n\n```\njq: error: syntax error, unexpected IDENT, expecting $end (Unix shell quoting issues?)\n```\n\n可以尝试以下替代语法：\n\n```bash\njq '.. | ._type?' file.json\n```\n\n或\n\n```bash\njq '..|._type?' file.json\n```\n\n使用 `?` 使字段访问变为可选，这样对于没有该字段的对象不会报错。"
+        }
+      ],
+      "prefix_summary": "# jq 命令使用笔记"
+    }
+  ]
+}

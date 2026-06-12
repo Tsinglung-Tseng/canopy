@@ -1,0 +1,195 @@
+{
+  "doc_name": "Git_SubmodulePathFix_Guide",
+  "line_count": 252,
+  "structure": [
+    {
+      "title": "Git 子模块路径修复指南",
+      "node_id": "0001",
+      "line_num": 24,
+      "text": "# Git 子模块路径修复指南",
+      "nodes": [
+        {
+          "title": "问题背景",
+          "node_id": "0002",
+          "line_num": 26,
+          "text": "## 问题背景\n\n在尝试将第三方库 `SentGraph-RAG` 从项目根目录迁移到 `src/third-party/` 目录时,采用了直接删除 + 重新 clone 的方式,导致 Git 记录混乱。",
+          "nodes": [
+            {
+              "title": "错误操作序列",
+              "node_id": "0003",
+              "line_num": 30,
+              "text": "### 错误操作序列\n\n```bash\n# 1. 初次在根目录添加子模块\ngit submodule add git@github.com:jidechao/SentGraph-RAG.git\n\n# 2. 直接删除子模块目录(错误操作)\nrm -rf SentGraph-RAG\n\n# 3. 导致 Git 状态不一致\n```",
+              "summary": "### 错误操作序列\n\n```bash\n# 1. 初次在根目录添加子模块\ngit submodule add git@github.com:jidechao/SentGraph-RAG.git\n\n# 2. 直接删除子模块目录(错误操作)\nrm -rf SentGraph-RAG\n\n# 3. 导致 Git 状态不一致\n```"
+            },
+            {
+              "title": "问题表现",
+              "node_id": "0004",
+              "line_num": 42,
+              "text": "### 问题表现\n\n执行 `git status` 后出现以下状态:\n\n```bash\nChanges to be committed:\n  modified:   .gitmodules\n  new file:   SentGraph-RAG\n\nChanges not staged for commit:\n  deleted:    SentGraph-RAG\n  modified:   src/third-party/LightRAG (modified content)\n\nUntracked files:\n  rag_storage_pg/\n  src/third-party/LightRAG.bak/\n```",
+              "summary": "### 问题表现\n\n执行 `git status` 后出现以下状态:\n\n```bash\nChanges to be committed:\n  modified:   .gitmodules\n  new file:   SentGraph-RAG\n\nChanges not staged for commit:\n  deleted:    SentGraph-RAG\n  modified:   src/third-party/LightRAG (modified content)\n\nUntracked files:\n  rag_storage_pg/\n  src/third-party/LightRAG.bak/\n```"
+            }
+          ],
+          "prefix_summary": "## 问题背景\n\n在尝试将第三方库 `SentGraph-RAG` 从项目根目录迁移到 `src/third-party/` 目录时,采用了直接删除 + 重新 clone 的方式,导致 Git 记录混乱。"
+        },
+        {
+          "title": "根本原因",
+          "node_id": "0005",
+          "line_num": 60,
+          "text": "## 根本原因\n\n直接使用 `rm -rf` 删除已添加的 Git 子模块会导致三处配置不一致:\n\n```mermaid\ngraph TD\n    A[\"Git 子模块状态\"] --> B[\".git/config\"]\n    A --> C[\".gitmodules\"]\n    A --> D[\"Git 索引 #40;Index#41;\"]\n    \n    E[\"rm -rf 操作\"] --> F[\"仅删除工作目录文件\"]\n    F -.->|\"未清理\"| B\n    F -.->|\"未清理\"| C\n    F -.->|\"未清理\"| D\n    \n    style E fill:#ff6b6b\n    style F fill:#ff6b6b\n    style B fill:#ffd93d\n    style C fill:#ffd93d\n    style D fill:#ffd93d\n```",
+          "summary": "## 根本原因\n\n直接使用 `rm -rf` 删除已添加的 Git 子模块会导致三处配置不一致:\n\n```mermaid\ngraph TD\n    A[\"Git 子模块状态\"] --> B[\".git/config\"]\n    A --> C[\".gitmodules\"]\n    A --> D[\"Git 索引 #40;Index#41;\"]\n    \n    E[\"rm -rf 操作\"] --> F[\"仅删除工作目录文件\"]\n    F -.->|\"未清理\"| B\n    F -.->|\"未清理\"| C\n    F -.->|\"未清理\"| D\n    \n    style E fill:#ff6b6b\n    style F fill:#ff6b6b\n    style B fill:#ffd93d\n    style C fill:#ffd93d\n    style D fill:#ffd93d\n```"
+        },
+        {
+          "title": "完整修复方案",
+          "node_id": "0006",
+          "line_num": 82,
+          "text": "## 完整修复方案",
+          "nodes": [
+            {
+              "title": "第一步: 彻底清理错误的子模块状态",
+              "node_id": "0007",
+              "line_num": 84,
+              "text": "### 第一步: 彻底清理错误的子模块状态",
+              "nodes": [
+                {
+                  "title": "1. 清除暂存区记录",
+                  "node_id": "0008",
+                  "line_num": 86,
+                  "text": "#### 1. 清除暂存区记录\n\n```bash\ngit rm --cached SentGraph-RAG\n```\n\n**作用**: 从 Git 索引中移除子模块引用,但不删除工作目录文件。",
+                  "summary": "#### 1. 清除暂存区记录\n\n```bash\ngit rm --cached SentGraph-RAG\n```\n\n**作用**: 从 Git 索引中移除子模块引用,但不删除工作目录文件。"
+                },
+                {
+                  "title": "2. 清理 `.gitmodules` 配置",
+                  "node_id": "0009",
+                  "line_num": 94,
+                  "text": "#### 2. 清理 `.gitmodules` 配置\n\n手动编辑 `.gitmodules` 文件,删除类似以下内容:\n\n```ini\n[submodule \"SentGraph-RAG\"]\n    path = SentGraph-RAG\n    url = git@github.com:jidechao/SentGraph-RAG.git\n```",
+                  "summary": "#### 2. 清理 `.gitmodules` 配置\n\n手动编辑 `.gitmodules` 文件,删除类似以下内容:\n\n```ini\n[submodule \"SentGraph-RAG\"]\n    path = SentGraph-RAG\n    url = git@github.com:jidechao/SentGraph-RAG.git\n```"
+                },
+                {
+                  "title": "3. 清理 `.git/config` 配置",
+                  "node_id": "0010",
+                  "line_num": 104,
+                  "text": "#### 3. 清理 `.git/config` 配置\n\n```bash\ngit submodule deinit -f SentGraph-RAG\n```\n\n**作用**: 从 `.git/config` 中移除子模块配置,并清理工作目录。",
+                  "summary": "#### 3. 清理 `.git/config` 配置\n\n```bash\ngit submodule deinit -f SentGraph-RAG\n```\n\n**作用**: 从 `.git/config` 中移除子模块配置,并清理工作目录。"
+                },
+                {
+                  "title": "4. 清理内部模块缓存",
+                  "node_id": "0011",
+                  "line_num": 112,
+                  "text": "#### 4. 清理内部模块缓存\n\n```bash\nrm -rf .git/modules/SentGraph-RAG\n```\n\n**作用**: 删除 Git 内部存储的子模块仓库缓存。",
+                  "summary": "#### 4. 清理内部模块缓存\n\n```bash\nrm -rf .git/modules/SentGraph-RAG\n```\n\n**作用**: 删除 Git 内部存储的子模块仓库缓存。"
+                }
+              ],
+              "prefix_summary": "### 第一步: 彻底清理错误的子模块状态"
+            },
+            {
+              "title": "第二步: 以正确路径重新添加子模块",
+              "node_id": "0012",
+              "line_num": 120,
+              "text": "### 第二步: 以正确路径重新添加子模块\n\n```bash\ngit submodule add git@github.com:jidechao/SentGraph-RAG.git src/third-party/SentGraph-RAG\n```\n\n**关键点**: 直接在 `git submodule add` 命令中指定目标路径,避免先添加后移动。",
+              "summary": "### 第二步: 以正确路径重新添加子模块\n\n```bash\ngit submodule add git@github.com:jidechao/SentGraph-RAG.git src/third-party/SentGraph-RAG\n```\n\n**关键点**: 直接在 `git submodule add` 命令中指定目标路径,避免先添加后移动。"
+            },
+            {
+              "title": "第三步: 验证并提交",
+              "node_id": "0013",
+              "line_num": 128,
+              "text": "### 第三步: 验证并提交",
+              "nodes": [
+                {
+                  "title": "验证状态",
+                  "node_id": "0014",
+                  "line_num": 130,
+                  "text": "#### 验证状态\n\n```bash\ngit status\n```\n\n预期输出:\n\n```\nChanges to be committed:\n  modified:   .gitmodules\n  new file:   src/third-party/SentGraph-RAG\n```",
+                  "summary": "#### 验证状态\n\n```bash\ngit status\n```\n\n预期输出:\n\n```\nChanges to be committed:\n  modified:   .gitmodules\n  new file:   src/third-party/SentGraph-RAG\n```"
+                },
+                {
+                  "title": "提交更改",
+                  "node_id": "0015",
+                  "line_num": 144,
+                  "text": "#### 提交更改\n\n```bash\ngit commit -m \"Add SentGraph-RAG as submodule in src/third-party\"\n```",
+                  "summary": "#### 提交更改\n\n```bash\ngit commit -m \"Add SentGraph-RAG as submodule in src/third-party\"\n```"
+                }
+              ],
+              "prefix_summary": "### 第三步: 验证并提交"
+            }
+          ],
+          "prefix_summary": "## 完整修复方案"
+        },
+        {
+          "title": "附加问题处理",
+          "node_id": "0016",
+          "line_num": 150,
+          "text": "## 附加问题处理",
+          "nodes": [
+            {
+              "title": "处理 LightRAG 的 modified content",
+              "node_id": "0017",
+              "line_num": 152,
+              "text": "### 处理 LightRAG 的 modified content\n\n如果 `src/third-party/LightRAG` 显示 `modified content`,可能原因:\n\n1. 子模块内有未提交的修改\n2. HEAD 指针漂移\n\n**解决方案**:\n\n```bash\ncd src/third-party/LightRAG\ngit checkout .  # 丢弃本地修改\ncd ../../..\n```",
+              "summary": "### 处理 LightRAG 的 modified content\n\n如果 `src/third-party/LightRAG` 显示 `modified content`,可能原因:\n\n1. 子模块内有未提交的修改\n2. HEAD 指针漂移\n\n**解决方案**:\n\n```bash\ncd src/third-party/LightRAG\ngit checkout .  # 丢弃本地修改\ncd ../../..\n```"
+            },
+            {
+              "title": "清理备份目录",
+              "node_id": "0018",
+              "line_num": 167,
+              "text": "### 清理备份目录\n\n```bash\n# 如果不需要 LightRAG.bak,可以删除\nrm -rf src/third-party/LightRAG.bak\n```",
+              "summary": "### 清理备份目录\n\n```bash\n# 如果不需要 LightRAG.bak,可以删除\nrm -rf src/third-party/LightRAG.bak\n```"
+            }
+          ],
+          "prefix_summary": "## 附加问题处理"
+        },
+        {
+          "title": "正确的子模块操作流程",
+          "node_id": "0019",
+          "line_num": 174,
+          "text": "## 正确的子模块操作流程\n\n```mermaid\nsequenceDiagram\n    participant User\n    participant Git\n    participant Submodule\n    \n    Note over User,Submodule: 正确添加子模块\n    User->>Git: git submodule add <url> <path>\n    Git->>Submodule: 克隆仓库到指定路径\n    Git->>Git: 更新 .gitmodules\n    Git->>Git: 更新 .git/config\n    Git->>Git: 添加到索引\n    \n    Note over User,Submodule: 正确删除子模块\n    User->>Git: git submodule deinit <path>\n    Git->>Git: 清理 .git/config\n    User->>Git: git rm <path>\n    Git->>Git: 清理索引和 .gitmodules\n    User->>Git: rm -rf .git/modules/<name>\n    Git->>Git: 清理内部缓存\n```",
+          "summary": "该部分文档主要介绍了Git子模块的正确操作流程，包括添加和删除子模块的具体步骤。添加子模块时，使用`git submodule add`命令克隆仓库到指定路径，并自动更新`.gitmodules`、`.git/config`文件以及索引。删除子模块时，依次执行`git submodule deinit`清理配置、`git rm`移除索引和`.gitmodules`记录、手动删除`.git/modules`中的缓存目录，最终完成清理。"
+        },
+        {
+          "title": "最佳实践",
+          "node_id": "0020",
+          "line_num": 198,
+          "text": "## 最佳实践",
+          "nodes": [
+            {
+              "title": "✅ 推荐做法",
+              "node_id": "0021",
+              "line_num": 200,
+              "text": "### ✅ 推荐做法\n\n1. **添加子模块时直接指定目标路径**\n   ```bash\n   git submodule add <url> <target/path>\n   ```\n\n2. **删除子模块使用完整流程**\n   ```bash\n   git submodule deinit -f <path>\n   git rm <path>\n   rm -rf .git/modules/<name>\n   ```\n\n3. **移动子模块使用 Git 命令**\n   ```bash\n   git mv <old-path> <new-path>\n   # 然后手动更新 .gitmodules 中的 path\n   ```",
+              "summary": "### ✅ 推荐做法\n\n1. **添加子模块时直接指定目标路径**\n   ```bash\n   git submodule add <url> <target/path>\n   ```\n\n2. **删除子模块使用完整流程**\n   ```bash\n   git submodule deinit -f <path>\n   git rm <path>\n   rm -rf .git/modules/<name>\n   ```\n\n3. **移动子模块使用 Git 命令**\n   ```bash\n   git mv <old-path> <new-path>\n   # 然后手动更新 .gitmodules 中的 path\n   ```"
+            },
+            {
+              "title": "❌ 避免的操作",
+              "node_id": "0022",
+              "line_num": 220,
+              "text": "### ❌ 避免的操作\n\n1. 直接 `rm -rf` 删除子模块目录\n2. 手动编辑 `.git/config` 而不使用 `git submodule deinit`\n3. 添加后再手动移动子模块目录",
+              "summary": "### ❌ 避免的操作\n\n1. 直接 `rm -rf` 删除子模块目录\n2. 手动编辑 `.git/config` 而不使用 `git submodule deinit`\n3. 添加后再手动移动子模块目录"
+            }
+          ],
+          "prefix_summary": "## 最佳实践"
+        },
+        {
+          "title": "参考命令速查",
+          "node_id": "0023",
+          "line_num": 226,
+          "text": "## 参考命令速查\n\n| 操作 | 命令 | 说明 |\n|------|------|------|\n| 添加子模块 | `git submodule add <url> <path>` | 指定路径添加 |\n| 初始化子模块 | `git submodule init` | 克隆后初始化 |\n| 更新子模块 | `git submodule update` | 拉取最新提交 |\n| 卸载子模块 | `git submodule deinit <path>` | 清理配置 |\n| 删除子模块 | `git rm <path>` | 从索引删除 |\n| 查看子模块状态 | `git submodule status` | 查看所有子模块 |\n| 递归克隆 | `git clone --recursive <url>` | 包含子模块克隆 |",
+          "summary": "## 参考命令速查\n\n| 操作 | 命令 | 说明 |\n|------|------|------|\n| 添加子模块 | `git submodule add <url> <path>` | 指定路径添加 |\n| 初始化子模块 | `git submodule init` | 克隆后初始化 |\n| 更新子模块 | `git submodule update` | 拉取最新提交 |\n| 卸载子模块 | `git submodule deinit <path>` | 清理配置 |\n| 删除子模块 | `git rm <path>` | 从索引删除 |\n| 查看子模块状态 | `git submodule status` | 查看所有子模块 |\n| 递归克隆 | `git clone --recursive <url>` | 包含子模块克隆 |"
+        },
+        {
+          "title": "相关资源",
+          "node_id": "0024",
+          "line_num": 238,
+          "text": "## 相关资源\n\n- [Git Submodules 官方文档](https://git-scm.com/book/en/v2/Git-Tools-Submodules)\n- 项目路径: `/Users/tsinglungtseng/scaffold/mylightrag`\n- 子模块目标目录: `src/third-party/`",
+          "summary": "## 相关资源\n\n- [Git Submodules 官方文档](https://git-scm.com/book/en/v2/Git-Tools-Submodules)\n- 项目路径: `/Users/tsinglungtseng/scaffold/mylightrag`\n- 子模块目标目录: `src/third-party/`"
+        },
+        {
+          "title": "总结",
+          "node_id": "0025",
+          "line_num": 244,
+          "text": "## 总结\n\nGit 子模块的管理需要同步维护三处配置:\n1. `.gitmodules` - 子模块元数据\n2. `.git/config` - 本地配置\n3. Git 索引 - 提交记录\n\n任何手动操作都应确保这三处保持一致,否则会导致状态混乱。使用 Git 提供的 `git submodule` 系列命令是最安全的做法。",
+          "summary": "## 总结\n\nGit 子模块的管理需要同步维护三处配置:\n1. `.gitmodules` - 子模块元数据\n2. `.git/config` - 本地配置\n3. Git 索引 - 提交记录\n\n任何手动操作都应确保这三处保持一致,否则会导致状态混乱。使用 Git 提供的 `git submodule` 系列命令是最安全的做法。"
+        }
+      ],
+      "prefix_summary": "# Git 子模块路径修复指南"
+    }
+  ]
+}

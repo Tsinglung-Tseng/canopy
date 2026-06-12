@@ -1,0 +1,339 @@
+{
+  "doc_name": "uv管理Python环境完整指南",
+  "line_count": 701,
+  "structure": [
+    {
+      "title": "uv管理Python环境完整指南",
+      "node_id": "0001",
+      "line_num": 54,
+      "text": "# uv管理Python环境完整指南",
+      "nodes": [
+        {
+          "title": "问题背景",
+          "node_id": "0002",
+          "line_num": 56,
+          "text": "## 问题背景\n\n在macOS下使用Python开发时面临的核心需求：\n\n1. **系统级需求**：需要经常运行Python脚本，需要一个默认的系统Python环境和全局工具（如pipreqs）\n2. **项目级需求**：有多个独立Python项目，每个项目需要dev、staging、production等不同环境\n3. **规范约束**：直接安装到系统Python会违反PEP 668规范\n\n**遇到的具体错误**：\n\n```bash\nuv pip install pipreqs\n# error: No virtual environment found; run `uv venv` to create an environment, \n# or pass `--system` to install into a non-virtual environment\n```",
+          "summary": "## 问题背景\n\n在macOS下使用Python开发时面临的核心需求：\n\n1. **系统级需求**：需要经常运行Python脚本，需要一个默认的系统Python环境和全局工具（如pipreqs）\n2. **项目级需求**：有多个独立Python项目，每个项目需要dev、staging、production等不同环境\n3. **规范约束**：直接安装到系统Python会违反PEP 668规范\n\n**遇到的具体错误**：\n\n```bash\nuv pip install pipreqs\n# error: No virtual environment found; run `uv venv` to create an environment, \n# or pass `--system` to install into a non-virtual environment\n```"
+        },
+        {
+          "title": "速查决策树",
+          "node_id": "0003",
+          "line_num": 72,
+          "text": "## 速查决策树",
+          "nodes": [
+            {
+              "title": "场景1：我要安装全局工具",
+              "node_id": "0004",
+              "line_num": 74,
+              "text": "### 场景1：我要安装全局工具\n\n```\n需要全局使用的工具（pipreqs、black、poetry等）\n    ↓\n使用 uv tool install\n    ↓\n✅ uv tool install pipreqs\n✅ pipreqs /path/to/project\n```\n\n**为什么不用 `--system`**：\n\n- uv tool 会为每个工具创建独立虚拟环境\n- 完全遵守PEP 668规范\n- 工具之间互不干扰，易于版本管理\n\n---",
+              "summary": "### 场景1：我要安装全局工具\n\n```\n需要全局使用的工具（pipreqs、black、poetry等）\n    ↓\n使用 uv tool install\n    ↓\n✅ uv tool install pipreqs\n✅ pipreqs /path/to/project\n```\n\n**为什么不用 `--system`**：\n\n- uv tool 会为每个工具创建独立虚拟环境\n- 完全遵守PEP 668规范\n- 工具之间互不干扰，易于版本管理\n\n---"
+            },
+            {
+              "title": "场景2：我要创建新项目",
+              "node_id": "0005",
+              "line_num": 93,
+              "text": "### 场景2：我要创建新项目\n\n```\n新建Python项目\n    ↓\n初始化 + 创建虚拟环境\n    ↓\n✅ cd my-project\n✅ uv init\n✅ uv venv\n✅ uv add requests pandas\n✅ uv add --dev pytest black\n```\n\n**关键点**：\n\n- `uv init` 创建 pyproject.toml\n- `uv venv` 自动创建 .venv 目录\n- 基础依赖用 `uv add`，开发依赖用 `uv add --dev`\n\n---",
+              "summary": "### 场景2：我要创建新项目\n\n```\n新建Python项目\n    ↓\n初始化 + 创建虚拟环境\n    ↓\n✅ cd my-project\n✅ uv init\n✅ uv venv\n✅ uv add requests pandas\n✅ uv add --dev pytest black\n```\n\n**关键点**：\n\n- `uv init` 创建 pyproject.toml\n- `uv venv` 自动创建 .venv 目录\n- 基础依赖用 `uv add`，开发依赖用 `uv add --dev`\n\n---"
+            },
+            {
+              "title": "场景3：我要在项目里切换dev/staging/prod环境",
+              "node_id": "0006",
+              "line_num": 115,
+              "text": "### 场景3：我要在项目里切换dev/staging/prod环境\n\n```\n一个项目需要多套环境配置\n    ↓\n使用 dependency groups（推荐）\n    ↓\n在 pyproject.toml 中定义\n    ↓\n✅ uv sync --group dev      # 开发环境\n✅ uv sync --group staging  # 预发环境  \n✅ uv sync                  # 生产环境\n```\n\n**配置示例**：\n\n```toml\n[project]\ndependencies = [\"fastapi>=0.104.0\"]\n\n[dependency-groups]\ndev = [\"pytest>=7.0.0\", \"black>=23.0.0\"]\nstaging = [\"locust>=2.0.0\"]\nprod = [\"gunicorn>=21.0.0\"]\n```\n\n---",
+              "summary": "### 场景3：我要在项目里切换dev/staging/prod环境\n\n```\n一个项目需要多套环境配置\n    ↓\n使用 dependency groups（推荐）\n    ↓\n在 pyproject.toml 中定义\n    ↓\n✅ uv sync --group dev      # 开发环境\n✅ uv sync --group staging  # 预发环境  \n✅ uv sync                  # 生产环境\n```\n\n**配置示例**：\n\n```toml\n[project]\ndependencies = [\"fastapi>=0.104.0\"]\n\n[dependency-groups]\ndev = [\"pytest>=7.0.0\", \"black>=23.0.0\"]\nstaging = [\"locust>=2.0.0\"]\nprod = [\"gunicorn>=21.0.0\"]\n```\n\n---"
+            },
+            {
+              "title": "场景4：我有旧项目的requirements.txt要迁移",
+              "node_id": "0007",
+              "line_num": 143,
+              "text": "### 场景4：我有旧项目的requirements.txt要迁移\n\n```\n已有项目使用 requirements.txt\n    ↓\n生成 requirements.txt（如果没有）\n    ↓\n✅ pipreqs . --force\n    ↓\n迁移到 uv 系统\n    ↓\n✅ uv init\n✅ uv venv\n✅ uv add -r requirements.txt\n✅ uv add --dev -r requirements-dev.txt\n```\n\n**验证迁移**：\n\n```bash\nuv sync\nuv run python -c \"import django; print(django.__version__)\"\n```\n\n---",
+              "summary": "### 场景4：我有旧项目的requirements.txt要迁移\n\n```\n已有项目使用 requirements.txt\n    ↓\n生成 requirements.txt（如果没有）\n    ↓\n✅ pipreqs . --force\n    ↓\n迁移到 uv 系统\n    ↓\n✅ uv init\n✅ uv venv\n✅ uv add -r requirements.txt\n✅ uv add --dev -r requirements-dev.txt\n```\n\n**验证迁移**：\n\n```bash\nuv sync\nuv run python -c \"import django; print(django.__version__)\"\n```\n\n---"
+            }
+          ],
+          "prefix_summary": "## 速查决策树"
+        },
+        {
+          "title": "详细方案",
+          "node_id": "0008",
+          "line_num": 169,
+          "text": "## 详细方案",
+          "nodes": [
+            {
+              "title": "1. uv tool 作为默认系统环境",
+              "node_id": "0009",
+              "line_num": 171,
+              "text": "### 1. uv tool 作为默认系统环境\n\n**核心概念**：用 `uv tool` 管理全局工具，而非直接安装到系统Python。",
+              "nodes": [
+                {
+                  "title": "安装全局工具",
+                  "node_id": "0010",
+                  "line_num": 175,
+                  "text": "#### 安装全局工具\n\n```bash\n# 安装工具\nuv tool install pipreqs\nuv tool install poetry\nuv tool install black\n\n# 直接使用（无需激活环境）\npipreqs /path/to/project\nblack myfile.py\n```",
+                  "summary": "#### 安装全局工具\n\n```bash\n# 安装工具\nuv tool install pipreqs\nuv tool install poetry\nuv tool install black\n\n# 直接使用（无需激活环境）\npipreqs /path/to/project\nblack myfile.py\n```"
+                },
+                {
+                  "title": "管理工具",
+                  "node_id": "0011",
+                  "line_num": 188,
+                  "text": "#### 管理工具\n\n```bash\n# 查看已安装工具\nuv tool list\n\n# 升级工具\nuv tool upgrade pipreqs\n\n# 卸载工具\nuv tool uninstall pipreqs\n```",
+                  "summary": "#### 管理工具\n\n```bash\n# 查看已安装工具\nuv tool list\n\n# 升级工具\nuv tool upgrade pipreqs\n\n# 卸载工具\nuv tool uninstall pipreqs\n```"
+                },
+                {
+                  "title": "优势",
+                  "node_id": "0012",
+                  "line_num": 201,
+                  "text": "#### 优势\n\n- ✅ 每个工具独立虚拟环境，互不干扰\n- ✅ 完全遵守PEP 668规范\n- ✅ 版本管理清晰\n- ✅ 无需手动激活环境\n\n---",
+                  "summary": "#### 优势\n\n- ✅ 每个工具独立虚拟环境，互不干扰\n- ✅ 完全遵守PEP 668规范\n- ✅ 版本管理清晰\n- ✅ 无需手动激活环境\n\n---"
+                }
+              ],
+              "prefix_summary": "### 1. uv tool 作为默认系统环境\n\n**核心概念**：用 `uv tool` 管理全局工具，而非直接安装到系统Python。"
+            },
+            {
+              "title": "2. 不同项目分别管理环境",
+              "node_id": "0013",
+              "line_num": 210,
+              "text": "### 2. 不同项目分别管理环境\n\n**核心概念**：每个项目有自己的 `.venv` 目录和 `pyproject.toml` 配置。",
+              "nodes": [
+                {
+                  "title": "项目初始化流程",
+                  "node_id": "0014",
+                  "line_num": 214,
+                  "text": "#### 项目初始化流程\n\n```bash\n# 1. 创建并进入项目目录\nmkdir my-api && cd my-api\n\n# 2. 初始化 uv 项目（生成 pyproject.toml）\nuv init\n\n# 3. 创建虚拟环境（生成 .venv）\nuv venv\n\n# 4. 添加生产依赖\nuv add fastapi sqlalchemy pydantic\n\n# 5. 添加开发依赖\nuv add --dev pytest black ruff ipython\n\n# 6. 运行项目\nuv run python main.py\nuv run pytest\n```",
+                  "summary": "#### 项目初始化流程\n\n```bash\n# 1. 创建并进入项目目录\nmkdir my-api && cd my-api\n\n# 2. 初始化 uv 项目（生成 pyproject.toml）\nuv init\n\n# 3. 创建虚拟环境（生成 .venv）\nuv venv\n\n# 4. 添加生产依赖\nuv add fastapi sqlalchemy pydantic\n\n# 5. 添加开发依赖\nuv add --dev pytest black ruff ipython\n\n# 6. 运行项目\nuv run python main.py\nuv run pytest\n```"
+                },
+                {
+                  "title": "项目结构",
+                  "node_id": "0015",
+                  "line_num": 237,
+                  "text": "#### 项目结构\n\n```\nmy-api/\n├── .venv/              # 虚拟环境（自动生成）\n├── pyproject.toml      # 项目配置和依赖\n├── uv.lock            # 锁文件（自动生成）\n├── main.py\n└── tests/\n```",
+                  "summary": "#### 项目结构\n\n```\nmy-api/\n├── .venv/              # 虚拟环境（自动生成）\n├── pyproject.toml      # 项目配置和依赖\n├── uv.lock            # 锁文件（自动生成）\n├── main.py\n└── tests/\n```"
+                },
+                {
+                  "title": "关键命令",
+                  "node_id": "0016",
+                  "line_num": 248,
+                  "text": "#### 关键命令\n\n```bash\n# 同步依赖（类似 npm install）\nuv sync\n\n# 查看已安装包\nuv pip list\n\n# 查看包详情\nuv pip show fastapi\n\n# 检查依赖冲突\nuv pip check\n```\n\n---",
+                  "summary": "#### 关键命令\n\n```bash\n# 同步依赖（类似 npm install）\nuv sync\n\n# 查看已安装包\nuv pip list\n\n# 查看包详情\nuv pip show fastapi\n\n# 检查依赖冲突\nuv pip check\n```\n\n---"
+                }
+              ],
+              "prefix_summary": "### 2. 不同项目分别管理环境\n\n**核心概念**：每个项目有自己的 `.venv` 目录和 `pyproject.toml` 配置。"
+            },
+            {
+              "title": "3. 一个项目下管理/切换不同环境",
+              "node_id": "0017",
+              "line_num": 266,
+              "text": "### 3. 一个项目下管理/切换不同环境\n\n**核心概念**：使用 **dependency groups**（PEP 735），在一个项目内定义多套环境配置。",
+              "nodes": [
+                {
+                  "title": "配置 pyproject.toml",
+                  "node_id": "0018",
+                  "line_num": 270,
+                  "text": "#### 配置 pyproject.toml\n\n```toml\n[project]\nname = \"my-api\"\nversion = \"0.1.0\"\n# 所有环境的基础依赖\ndependencies = [\n    \"fastapi>=0.104.0\",\n    \"sqlalchemy>=2.0.0\",\n    \"pydantic>=2.0.0\",\n    \"python-dotenv>=1.0.0\",\n]\n\n# 定义不同环境的额外依赖\n[dependency-groups]\ndev = [\n    \"pytest>=7.0.0\",\n    \"pytest-asyncio>=0.21.0\",\n    \"black>=23.0.0\",\n    \"ruff>=0.1.0\",\n    \"ipython>=8.0.0\",\n    \"httpx>=0.25.0\",  # 用于测试\n]\n\nstaging = [\n    \"pytest>=7.0.0\",\n    \"locust>=2.0.0\",  # 性能测试\n    \"uvicorn>=0.24.0\",\n]\n\nprod = [\n    \"gunicorn>=21.0.0\",\n    \"uvicorn[standard]>=0.24.0\",\n]\n```",
+                  "summary": "该部分文档主要介绍了如何配置 `pyproject.toml` 文件，包括定义项目名称和版本、设置所有环境的基础依赖（如 FastAPI、SQLAlchemy、Pydantic 等），以及为不同环境（dev、staging、prod）分别指定额外的依赖项，例如开发环境包含 pytest、black 等，预发布环境包含 locust，生产环境包含 gunicorn 和 uvicorn。"
+                },
+                {
+                  "title": "环境切换命令",
+                  "node_id": "0019",
+                  "line_num": 307,
+                  "text": "#### 环境切换命令\n\n```bash\n# 切换到开发环境（基础依赖 + dev组）\nuv sync --group dev\n\n# 切换到预发环境（基础依赖 + staging组）\nuv sync --group staging\n\n# 切换到生产环境（仅基础依赖）\nuv sync\n\n# 同时安装多个组\nuv sync --group dev --group staging\n```",
+                  "summary": "#### 环境切换命令\n\n```bash\n# 切换到开发环境（基础依赖 + dev组）\nuv sync --group dev\n\n# 切换到预发环境（基础依赖 + staging组）\nuv sync --group staging\n\n# 切换到生产环境（仅基础依赖）\nuv sync\n\n# 同时安装多个组\nuv sync --group dev --group staging\n```"
+                },
+                {
+                  "title": "实际工作流",
+                  "node_id": "0020",
+                  "line_num": 323,
+                  "text": "#### 实际工作流\n\n```bash\n# 开发阶段\nuv sync --group dev\nuv run uvicorn main:app --reload\nuv run pytest\nuv run black .\n\n# 预发测试\nuv sync --group staging\nuv run locust -f locustfile.py\n\n# 生产部署\nuv sync  # 仅生产依赖\nuv run gunicorn main:app -w 4\n```",
+                  "summary": "#### 实际工作流\n\n```bash\n# 开发阶段\nuv sync --group dev\nuv run uvicorn main:app --reload\nuv run pytest\nuv run black .\n\n# 预发测试\nuv sync --group staging\nuv run locust -f locustfile.py\n\n# 生产部署\nuv sync  # 仅生产依赖\nuv run gunicorn main:app -w 4\n```"
+                },
+                {
+                  "title": "使用 Makefile 简化操作",
+                  "node_id": "0021",
+                  "line_num": 341,
+                  "text": "#### 使用 Makefile 简化操作\n\n```makefile\n.PHONY: dev staging prod test\n\ndev:\n\tuv sync --group dev\n\t@echo \"✅ Dev environment ready\"\n\nstaging:\n\tuv sync --group staging\n\t@echo \"✅ Staging environment ready\"\n\nprod:\n\tuv sync\n\t@echo \"✅ Production environment ready\"\n\ntest:\n\tuv run pytest\n\nrun-dev:\n\tuv run uvicorn main:app --reload\n\nrun-prod:\n\tuv run gunicorn main:app -w 4\n```\n\n使用：\n\n```bash\nmake dev      # 切换开发环境\nmake staging  # 切换预发环境\nmake prod     # 切换生产环境\nmake run-dev  # 启动开发服务器\n```\n\n---",
+                  "summary": "#### 使用 Makefile 简化操作\n\n```makefile\n.PHONY: dev staging prod test\n\ndev:\n\tuv sync --group dev\n\t@echo \"✅ Dev environment ready\"\n\nstaging:\n\tuv sync --group staging\n\t@echo \"✅ Staging environment ready\"\n\nprod:\n\tuv sync\n\t@echo \"✅ Production environment ready\"\n\ntest:\n\tuv run pytest\n\nrun-dev:\n\tuv run uvicorn main:app --reload\n\nrun-prod:\n\tuv run gunicorn main:app -w 4\n```\n\n使用：\n\n```bash\nmake dev      # 切换开发环境\nmake staging  # 切换预发环境\nmake prod     # 切换生产环境\nmake run-dev  # 启动开发服务器\n```\n\n---"
+                }
+              ],
+              "prefix_summary": "### 3. 一个项目下管理/切换不同环境\n\n**核心概念**：使用 **dependency groups**（PEP 735），在一个项目内定义多套环境配置。"
+            },
+            {
+              "title": "4. 使用pipreqs导出requirements.txt并迁移到uv",
+              "node_id": "0022",
+              "line_num": 379,
+              "text": "### 4. 使用pipreqs导出requirements.txt并迁移到uv\n\n**核心概念**：用 `pipreqs` 智能识别项目依赖，然后迁移到uv的现代化管理。",
+              "nodes": [
+                {
+                  "title": "第一步：安装pipreqs",
+                  "node_id": "0023",
+                  "line_num": 383,
+                  "text": "#### 第一步：安装pipreqs\n\n```bash\n# 使用 uv tool 安装（推荐）\nuv tool install pipreqs\n```",
+                  "summary": "#### 第一步：安装pipreqs\n\n```bash\n# 使用 uv tool 安装（推荐）\nuv tool install pipreqs\n```"
+                },
+                {
+                  "title": "第二步：生成requirements.txt",
+                  "node_id": "0024",
+                  "line_num": 390,
+                  "text": "#### 第二步：生成requirements.txt\n\n```bash\n# 扫描当前项目，生成 requirements.txt\npipreqs . --force\n\n# 检查生成的文件\ncat requirements.txt\n```\n\n**pipreqs优势**：\n\n- 只包含项目实际使用的包\n- 比 `pip freeze` 更精准（不包含无关依赖）",
+                  "summary": "#### 第二步：生成requirements.txt\n\n```bash\n# 扫描当前项目，生成 requirements.txt\npipreqs . --force\n\n# 检查生成的文件\ncat requirements.txt\n```\n\n**pipreqs优势**：\n\n- 只包含项目实际使用的包\n- 比 `pip freeze` 更精准（不包含无关依赖）"
+                },
+                {
+                  "title": "第三步：迁移到uv系统",
+                  "node_id": "0025",
+                  "line_num": 405,
+                  "text": "#### 第三步：迁移到uv系统\n\n**方案A：完整迁移（推荐）**\n\n```bash\n# 1. 初始化 uv 项目\nuv init\n\n# 2. 创建虚拟环境\nuv venv\n\n# 3. 从 requirements.txt 批量添加\nuv add -r requirements.txt\n\n# 4. 如果有开发依赖\nuv add --dev -r requirements-dev.txt\n\n# 5. 验证迁移\nuv sync\nuv run python -c \"import django; print(django.__version__)\"\n\n# 6. 清理旧文件（可选）\n# rm requirements.txt requirements-dev.txt\n```\n\n**方案B：保留requirements.txt**\n\n```bash\n# 仅安装，不修改 pyproject.toml\nuv pip install -r requirements.txt\n\n# 适用于临时项目或CI/CD环境\n```",
+                  "summary": "该部分文档主要介绍了迁移到uv系统的第三步，提供了两种方案：方案A（推荐）完整迁移，包括初始化项目、创建虚拟环境、批量添加依赖、验证迁移和清理旧文件等步骤；方案B保留requirements.txt，仅安装依赖而不修改pyproject.toml，适用于临时项目或CI/CD环境。"
+                },
+                {
+                  "title": "第四步：生成锁文件",
+                  "node_id": "0026",
+                  "line_num": 439,
+                  "text": "#### 第四步：生成锁文件\n\n```bash\n# uv 会自动生成 uv.lock 文件\n# 类似于 package-lock.json 或 Cargo.lock\n# 确保团队成员使用完全一致的依赖版本\n```",
+                  "summary": "#### 第四步：生成锁文件\n\n```bash\n# uv 会自动生成 uv.lock 文件\n# 类似于 package-lock.json 或 Cargo.lock\n# 确保团队成员使用完全一致的依赖版本\n```"
+                },
+                {
+                  "title": "完整迁移示例",
+                  "node_id": "0027",
+                  "line_num": 447,
+                  "text": "#### 完整迁移示例\n\n假设旧项目结构：\n\n```\nold-project/\n├── requirements.txt\n├── requirements-dev.txt\n└── app.py\n```\n\n迁移步骤：\n\n```bash\n# 1. 进入项目\ncd old-project\n\n# 2. 如果没有 requirements.txt，先生成\npipreqs . --force\n\n# 3. 初始化 uv\nuv init\nuv venv\n\n# 4. 迁移依赖\nuv add -r requirements.txt\nuv add --dev -r requirements-dev.txt\n\n# 5. 同步并测试\nuv sync\nuv run python app.py\n\n# 6. 验证所有功能正常后\n# 可选：删除旧文件\n# rm requirements*.txt\n```\n\n迁移后的项目结构：\n\n```\nold-project/\n├── .venv/              # 新增\n├── pyproject.toml      # 新增\n├── uv.lock            # 新增\n├── app.py\n└── requirements.txt    # 可选保留\n```\n\n---",
+                  "summary": "The document provides a complete migration example from a legacy Python project to one using `uv`. It outlines the old project structure, step-by-step migration commands (including dependency generation, project initialization, virtual environment creation, adding dependencies, syncing, and testing), and the resulting new project structure with added `.venv`, `pyproject.toml`, and `uv.lock` files."
+                }
+              ],
+              "prefix_summary": "### 4. 使用pipreqs导出requirements.txt并迁移到uv\n\n**核心概念**：用 `pipreqs` 智能识别项目依赖，然后迁移到uv的现代化管理。"
+            }
+          ],
+          "prefix_summary": "## 详细方案"
+        },
+        {
+          "title": "常见问题FAQ",
+          "node_id": "0028",
+          "line_num": 497,
+          "text": "## 常见问题FAQ",
+          "nodes": [
+            {
+              "title": "Q1: 为什么不直接用 `uv pip install --system`？",
+              "node_id": "0029",
+              "line_num": 499,
+              "text": "### Q1: 为什么不直接用 `uv pip install --system`？\n\n**A**:\n\n- 违反PEP 668规范（破坏系统包管理）\n- 全局工具会互相干扰\n- 难以管理版本和升级\n- `uv tool` 提供了更好的替代方案",
+              "summary": "### Q1: 为什么不直接用 `uv pip install --system`？\n\n**A**:\n\n- 违反PEP 668规范（破坏系统包管理）\n- 全局工具会互相干扰\n- 难以管理版本和升级\n- `uv tool` 提供了更好的替代方案"
+            },
+            {
+              "title": "Q2: 如何查看当前使用的是哪个环境？",
+              "node_id": "0030",
+              "line_num": 508,
+              "text": "### Q2: 如何查看当前使用的是哪个环境？\n\n**A**:\n\n```bash\n# 查看虚拟环境路径\nwhich python\n\n# 查看已安装的包（当前环境）\nuv pip list\n\n# 查看 dependency groups 状态\ncat uv.lock  # 锁文件记录了安装的组\n```",
+              "summary": "### Q2: 如何查看当前使用的是哪个环境？\n\n**A**:\n\n```bash\n# 查看虚拟环境路径\nwhich python\n\n# 查看已安装的包（当前环境）\nuv pip list\n\n# 查看 dependency groups 状态\ncat uv.lock  # 锁文件记录了安装的组\n```"
+            },
+            {
+              "title": "Q3: dependency groups vs 多个虚拟环境，如何选择？",
+              "node_id": "0031",
+              "line_num": 523,
+              "text": "### Q3: dependency groups vs 多个虚拟环境，如何选择？\n\n**A**:\n\n- **dependency groups**（推荐）：同一项目不同配置，切换快速\n- **多虚拟环境**：需要同时运行多个环境，或Python版本不同",
+              "summary": "### Q3: dependency groups vs 多个虚拟环境，如何选择？\n\n**A**:\n\n- **dependency groups**（推荐）：同一项目不同配置，切换快速\n- **多虚拟环境**：需要同时运行多个环境，或Python版本不同"
+            },
+            {
+              "title": "Q4: 已有项目从pip迁移到uv，会破坏原有环境吗？",
+              "node_id": "0032",
+              "line_num": 530,
+              "text": "### Q4: 已有项目从pip迁移到uv，会破坏原有环境吗？\n\n**A**: 不会\n\n```bash\n# uv 创建新的 .venv，不影响系统 Python\n# 如果不满意，直接删除 .venv 和 pyproject.toml 即可回退\nrm -rf .venv pyproject.toml uv.lock\n```",
+              "summary": "### Q4: 已有项目从pip迁移到uv，会破坏原有环境吗？\n\n**A**: 不会\n\n```bash\n# uv 创建新的 .venv，不影响系统 Python\n# 如果不满意，直接删除 .venv 和 pyproject.toml 即可回退\nrm -rf .venv pyproject.toml uv.lock\n```"
+            },
+            {
+              "title": "Q5: CI/CD 中如何使用uv？",
+              "node_id": "0033",
+              "line_num": 540,
+              "text": "### Q5: CI/CD 中如何使用uv？\n\n**A**:\n\n```bash\n# GitHub Actions 示例\n- name: Install uv\n  run: curl -LsSf https://astral.sh/uv/install.sh | sh\n\n- name: Install dependencies\n  run: uv sync\n\n- name: Run tests\n  run: uv run pytest\n```",
+              "summary": "### Q5: CI/CD 中如何使用uv？\n\n**A**:\n\n```bash\n# GitHub Actions 示例\n- name: Install uv\n  run: curl -LsSf https://astral.sh/uv/install.sh | sh\n\n- name: Install dependencies\n  run: uv sync\n\n- name: Run tests\n  run: uv run pytest\n```"
+            },
+            {
+              "title": "Q6: uv 生成的 uv.lock 文件有什么用？",
+              "node_id": "0034",
+              "line_num": 556,
+              "text": "### Q6: uv 生成的 uv.lock 文件有什么用？\n\n**A**:\n\n- 锁定所有依赖的精确版本（包括传递依赖）\n- 确保团队成员环境一致\n- 类似 npm 的 package-lock.json\n- 应该提交到 Git",
+              "summary": "### Q6: uv 生成的 uv.lock 文件有什么用？\n\n**A**:\n\n- 锁定所有依赖的精确版本（包括传递依赖）\n- 确保团队成员环境一致\n- 类似 npm 的 package-lock.json\n- 应该提交到 Git"
+            },
+            {
+              "title": "Q7: 如何在不同 Python 版本间切换？",
+              "node_id": "0035",
+              "line_num": 565,
+              "text": "### Q7: 如何在不同 Python 版本间切换？\n\n**A**:\n\n```bash\n# 创建指定 Python 版本的虚拟环境\nuv venv --python 3.11 .venv-py311\nuv venv --python 3.12 .venv-py312\n\n# 激活对应环境\nsource .venv-py311/bin/activate\n```\n\n---\n\n请在笔记的 **「常见问题 FAQ」部分下方（即 Q7 后）** 添加以下新的小节内容：\n\n---",
+              "summary": "### Q7: 如何在不同 Python 版本间切换？\n\n**A**:\n\n```bash\n# 创建指定 Python 版本的虚拟环境\nuv venv --python 3.11 .venv-py311\nuv venv --python 3.12 .venv-py312\n\n# 激活对应环境\nsource .venv-py311/bin/activate\n```\n\n---\n\n请在笔记的 **「常见问题 FAQ」部分下方（即 Q7 后）** 添加以下新的小节内容：\n\n---"
+            },
+            {
+              "title": "**Q8: 项目初始化时报错 “incompatible with the project’s Python requirement”**",
+              "node_id": "0036",
+              "line_num": 584,
+              "text": "### **Q8: 项目初始化时报错 “incompatible with the project’s Python requirement”**\n**现象**：\n\n```\nuv add langchain-openai\n# error: The Python request from `.python-version` resolved to Python 3.10.16,\n# which is incompatible with the project's Python requirement: `>=3.13`\n```\n\n**原因**：\n\n项目的 pyproject.toml 要求 Python >=3.13，但 .python-version 或系统环境是 3.10。\n\n**解决方案一（推荐，升级至 3.13）**：\n```\nuv python install 3.13\nuv python pin 3.13\nuv sync\n```\n\n**解决方案二（修改项目要求）**：\n编辑 pyproject.toml：\n\n```\n[project]\nrequires-python = \">=3.10\"\n```\n\n然后执行：\n\n```\nuv sync\n```\n\n**检查当前版本**：\n\n```\nuv python list\ncat .python-version\n```\n\n**最佳实践**：\n\n为每个项目固定 Python 版本：\n\n```\nuv python pin $(uv python find 3.13)\n```\n\n---",
+              "summary": "该部分文档主要描述了项目初始化时因Python版本不兼容导致的错误（`incompatible with the project’s Python requirement`），并提供了两种解决方案：升级至Python 3.13或修改项目要求的Python版本，同时介绍了如何检查当前版本以及固定Python版本的最佳实践。"
+            }
+          ],
+          "prefix_summary": "## 常见问题FAQ"
+        },
+        {
+          "title": "核心命令速查",
+          "node_id": "0037",
+          "line_num": 634,
+          "text": "## 核心命令速查",
+          "nodes": [
+            {
+              "title": "全局工具管理",
+              "node_id": "0038",
+              "line_num": 636,
+              "text": "### 全局工具管理\n\n```bash\nuv tool install <tool>    # 安装全局工具\nuv tool list              # 列出已安装工具\nuv tool upgrade <tool>    # 升级工具\nuv tool uninstall <tool>  # 卸载工具\n```",
+              "summary": "### 全局工具管理\n\n```bash\nuv tool install <tool>    # 安装全局工具\nuv tool list              # 列出已安装工具\nuv tool upgrade <tool>    # 升级工具\nuv tool uninstall <tool>  # 卸载工具\n```"
+            },
+            {
+              "title": "项目初始化",
+              "node_id": "0039",
+              "line_num": 645,
+              "text": "### 项目初始化\n\n```bash\nuv init                   # 初始化项目\nuv venv                   # 创建虚拟环境\nuv add <package>          # 添加依赖\nuv add --dev <package>    # 添加开发依赖\nuv sync                   # 同步依赖\n```",
+              "summary": "### 项目初始化\n\n```bash\nuv init                   # 初始化项目\nuv venv                   # 创建虚拟环境\nuv add <package>          # 添加依赖\nuv add --dev <package>    # 添加开发依赖\nuv sync                   # 同步依赖\n```"
+            },
+            {
+              "title": "环境切换",
+              "node_id": "0040",
+              "line_num": 655,
+              "text": "### 环境切换\n\n```bash\nuv sync --group dev       # 切换到开发环境\nuv sync --group staging   # 切换到预发环境\nuv sync                   # 切换到生产环境\n```",
+              "summary": "### 环境切换\n\n```bash\nuv sync --group dev       # 切换到开发环境\nuv sync --group staging   # 切换到预发环境\nuv sync                   # 切换到生产环境\n```"
+            },
+            {
+              "title": "环境检查",
+              "node_id": "0041",
+              "line_num": 663,
+              "text": "### 环境检查\n\n```bash\nuv pip list               # 列出已安装包\nuv pip show <package>     # 查看包详情\nuv pip check              # 检查依赖冲突\nuv pip freeze             # 导出依赖列表\n```",
+              "summary": "### 环境检查\n\n```bash\nuv pip list               # 列出已安装包\nuv pip show <package>     # 查看包详情\nuv pip check              # 检查依赖冲突\nuv pip freeze             # 导出依赖列表\n```"
+            },
+            {
+              "title": "运行命令",
+              "node_id": "0042",
+              "line_num": 672,
+              "text": "### 运行命令\n\n```bash\nuv run python script.py   # 在虚拟环境中运行脚本\nuv run pytest             # 运行测试\nuv run black .            # 运行代码格式化\n```\n\n---",
+              "summary": "### 运行命令\n\n```bash\nuv run python script.py   # 在虚拟环境中运行脚本\nuv run pytest             # 运行测试\nuv run black .            # 运行代码格式化\n```\n\n---"
+            }
+          ],
+          "prefix_summary": "## 核心命令速查"
+        },
+        {
+          "title": "最佳实践总结",
+          "node_id": "0043",
+          "line_num": 682,
+          "text": "## 最佳实践总结\n\n1. **全局工具**：一律使用 `uv tool install`，不要用 `--system`\n2. **新项目**：从 `uv init` 开始，不要手动创建 pyproject.toml\n3. **多环境**：优先使用 dependency groups，除非需要不同Python版本\n4. **旧项目迁移**：先用 `pipreqs` 生成精简的 requirements.txt，再迁移\n5. **版本控制**：提交 `pyproject.toml` 和 `uv.lock`，不提交 `.venv/`\n6. **团队协作**：确保所有成员使用 `uv sync` 而非手动安装\n\n---",
+          "summary": "## 最佳实践总结\n\n1. **全局工具**：一律使用 `uv tool install`，不要用 `--system`\n2. **新项目**：从 `uv init` 开始，不要手动创建 pyproject.toml\n3. **多环境**：优先使用 dependency groups，除非需要不同Python版本\n4. **旧项目迁移**：先用 `pipreqs` 生成精简的 requirements.txt，再迁移\n5. **版本控制**：提交 `pyproject.toml` 和 `uv.lock`，不提交 `.venv/`\n6. **团队协作**：确保所有成员使用 `uv sync` 而非手动安装\n\n---"
+        },
+        {
+          "title": "相关资源",
+          "node_id": "0044",
+          "line_num": 693,
+          "text": "## 相关资源\n\n- [uv 官方文档](https://docs.astral.sh/uv/)\n- [PEP 668: 标记 Python 环境为\"外部管理\"](https://peps.python.org/pep-0668/)\n- [PEP 735: Dependency Groups](https://peps.python.org/pep-0735/)\n- [pipreqs GitHub](https://github.com/bndr/pipreqs)",
+          "summary": "## 相关资源\n\n- [uv 官方文档](https://docs.astral.sh/uv/)\n- [PEP 668: 标记 Python 环境为\"外部管理\"](https://peps.python.org/pep-0668/)\n- [PEP 735: Dependency Groups](https://peps.python.org/pep-0735/)\n- [pipreqs GitHub](https://github.com/bndr/pipreqs)"
+        },
+        {
+          "title": "🔗 相关笔记",
+          "node_id": "0045",
+          "line_num": 699,
+          "text": "## 🔗 相关笔记\n\n- [[DevOps_ModelScope-SOCKS-Proxy-Error_uv-tool-inject修复]]",
+          "summary": "## 🔗 相关笔记\n\n- [[DevOps_ModelScope-SOCKS-Proxy-Error_uv-tool-inject修复]]"
+        }
+      ],
+      "prefix_summary": "# uv管理Python环境完整指南"
+    }
+  ]
+}
