@@ -14,10 +14,15 @@ ir-gen: ## .tsp → src/types/canopy.types.ts（生成文件只读）
 	mkdir -p src/types
 	cp $(GEN_OUT) $(GEN_DST)
 
-ir-check: ## 回归闸：重生成后无漂移（含 golden 对照）
-	$(MAKE) ir-gen
-	git diff --exit-code -- $(GEN_DST)
+# 生成的 src/types/canopy.types.ts 已落仓；fullStackIR 工具链是维护者侧的回归闸，
+# 开源用户无 fsir 时跳过（golden/canopy.types.ts 与落仓文件的 diff 仍然执行）。
+ir-check: ## 回归闸：重生成后无漂移（含 golden 对照）；无 fsir 工具链则跳过重生成
 	diff -u golden/canopy.types.ts $(GEN_DST)
+	@if [ -x "$(TSP)" ]; then \
+	  $(MAKE) ir-gen && git diff --exit-code -- $(GEN_DST); \
+	else \
+	  echo "ir-check: fullStackIR 工具链不存在（$(TSP)），跳过重生成对照（golden diff 已通过）"; \
+	fi
 
 ir-golden: ir-gen ## 重钉 golden（仅在 .tsp 变更评审后）
 	mkdir -p golden

@@ -14,10 +14,10 @@ corpus = Canopy 的一等抽象：一个文本集的全部配置。解析 `corpo
 corpora:
   - name: vault
     source:
-      dir: ~/Library/Mobile Documents/iCloud~md~obsidian/Documents/RPG
+      dir: ~/Documents/my-vault              # 示例占位：你的笔记目录
       glob: "**/*.md"
       ignore: [".*/**"]            # 点目录（.claude/.obsidian/...）一律不进
-    resultsDir: ~/scaffold/molly.pageindex/results/RPG   # 兼容既有产物（ADR-006）
+    resultsDir: ~/.local/share/canopy/results/vault      # 产物目录（可指向既有 molly.pageindex results 以零重建收养，ADR-006）
     backend: memory                # memory | sqlite（ADR-003）
     llm:
       baseURL: ${CANOPY_LLM_BASE_URL}

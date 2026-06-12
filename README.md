@@ -21,17 +21,18 @@ canopy watch  --corpus vault               # 常驻 watcher（单实例）
 
 ## 文档地图
 
+- **对外兼容承诺：`COMPATIBILITY.md`**（产物格式/规范名/CLI --json/MCP 工具面/配置键）
 - 计划与里程碑：`docs/project/dev-plan.md`
 - 变更时间线：`docs/project/CHANGELOG.md`
 - 模块设计（10 篇）：`docs/modules/`
-- 架构决策（ADR 001–007）：`docs/decisions/`
+- 架构决策（ADR 001–008）：`docs/decisions/`
   - 001 语言选型 TS · 002 日志三铁律 · 003 检索后端可插拔
   - 004 跨语言 CLI `--json` 契约 · 005 基座消费（fsir + Plexus）· 006 索引格式兼容
-  - 007 核心精简版切线（lean core scope）
+  - 007 核心精简版切线（lean core scope）· 008 自带最小 LLM kernel（Plexus 可选注入）
 
 ## 基座
 
 本仓是 [/scaffold 基座消费规范](~/.claude/skills/scaffold/SKILL.md) 的消费项目：
 
 - **石笋 fullStackIR**：`ir/canopy.tsp` → emit `src/types/canopy.types.ts`（只读，golden 保护）
-- **Plexus**：LLM 编排直接 import（ask / askSchema / par / Budget）
+- **Plexus**：可选注入（ADR-008）——消费的原语子集已内联为 `src/llm/kernel.ts`，Plexus 后端实例可直接注入

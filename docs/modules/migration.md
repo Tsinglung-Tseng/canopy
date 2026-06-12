@@ -8,7 +8,7 @@
 |---|---|---|---|
 | Claude Code MCP 注册（`pageindex`，user scope 双份） | molly.pageindex/mcp_server.py（带 watcher + 1.4 GB 日志） | `canopy mcp --corpus vault` | M6：`claude mcp add-json` 换 command；工具名/签名兼容（mcp.md），零调用方改动 |
 | Molly worker（config.json watchers[2] "Pageindex (Web)"） | `uv run python main.py`（web supervisor） | `canopy watch --corpus vault`（web UI 是否保留另议，见下） | M6：改 startCmd/startCwd |
-| launchd `com.tsinglungtseng.pageindex-batch`（03:00） | pageindex-batch.sh → batch_index.py | `canopy batch --corpus vault` | M7：改入口脚本一行（保留 launchd-tcc-wrapper 链路） |
+| launchd `com.<user>.pageindex-batch`（03:00） | pageindex-batch.sh → batch_index.py | `canopy batch --corpus vault` | M7：改入口脚本一行（保留 launchd-tcc-wrapper 链路） |
 | readers.myapp | editable 依赖 molly.pageindex；自制 BM25 副本；llm_cache 包 LLM 调用 | spawn `canopy index --file <md> --json` 建树；spawn `canopy find/search --json` 检索；删 `src/search.py` 的 BM25 类 | M7：pyproject 删 path 依赖；llm_cache 缺口见 llm.md 已知问题 |
 | library-search | VaultAdapter/ReadersAdapter 直接读别人目录 + import molly.pageindex 内部函数 | adapter 改 spawn `canopy search --corpus X --json` | M7：adapter 改写；libraries.yaml 的 pageindex_root 等字段换成 corpus 名 |
 

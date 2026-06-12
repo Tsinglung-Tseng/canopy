@@ -37,7 +37,7 @@ beforeEach(() => {
   srcDir = join(dir, "src");
   mkdirSync(srcDir);
   process.env["CANOPY_TEST_BASE_URL"] = "https://example.com/v1";
-  process.env["CANOPY_TEST_API_KEY"] = "sk-test";
+  process.env["CANOPY_TEST_API_KEY"] = "test-key-abc123";
 });
 
 afterEach(() => {
@@ -51,7 +51,7 @@ describe("corpus 解析", () => {
     writeConfig(validYaml());
     const cfg = resolveCorpus("test");
     expect(cfg.llm.baseURL).toBe("https://example.com/v1");
-    expect(cfg.llm.apiKey).toBe("sk-test");
+    expect(cfg.llm.apiKey).toBe("test-key-abc123");
     expect(cfg.source.dir).toBe(srcDir);
     expect(cfg.backend).toBe("memory");
   });

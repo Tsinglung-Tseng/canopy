@@ -6,7 +6,8 @@ namespace Api;
 
 // ── 索引产物（*_structure.json，逐字段兼容 molly.pageindex，ADR-006）──
 
-/** 文档树节点。node_id 为 4 位零填充字符串（先序重写，"0000" 起）。 */
+/** 文档树节点。node_id 为 4 位零填充字符串（build_tree 文档序 1-based，"0001" 起——
+ *  生产事实格式，ADR-006）。 */
 model TreeNode {
   title: string;
   node_id: string;
@@ -45,8 +46,8 @@ model SourceSpec {
   ignore: string[];
 }
 
-/** 结构化输出模式（Plexus OpenAICompatOpts.schema；json_schema 不被后端支持时
- *  Plexus 会降级 complete+hint 并 warn——显式配置可省掉每次 400 往返） */
+/** 结构化输出模式（OpenAICompatLlm schema 模式，ADR-008；json_schema 不被后端支持时
+ *  降级 complete+hint 并 warn——显式配置可省掉每次 400 往返） */
 enum SchemaMode {
   jsonSchema: "json_schema",
   jsonObject: "json_object",
@@ -58,7 +59,7 @@ model LlmSpec {
   baseURL: string;
   apiKey: string;
   `model`: string;
-  /** 文档化可选：缺省走 Plexus 默认（json_schema） */
+  /** 文档化可选：缺省 json_schema */
   schema?: SchemaMode;
 }
 

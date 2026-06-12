@@ -3,6 +3,9 @@
 ### 2026-06-12（开源移植就绪）
 - [decision] llm: ADR-008——解开源阻断项 `"plexus": "file:../Plexus"`：Canopy 实际消费的 Plexus 原语子集内联为零依赖 `src/llm/kernel.ts`（Cost/Outcome/Budget/ask/askSchema/par/run）+ `openai.ts`（零 SDK OpenAI-compatible 后端，schema 三模式保留）+ `mock.ts`（MockLlm）。`Llm` 接口为 Plexus 的结构子集，Plexus 后端实例可直接注入（可选增强）；package.json 不再含 plexus。95 用例全绿 + 真 DeepSeek e2e（batch 索引 + 中文两阶段检索）复验。
 - [fix] llm: stage-2 prompt 补 "JSON" 一词——DeepSeek json_object 模式要求 prompt 含 "json" 字样，否则每次 stage-2 仍发生一次 400 降级往返；修后零降级。
+- [feature] docs: COMPATIBILITY.md——冻结对外兼容面一页（产物格式+键序+序列化字节格式、规范名规则、CLI --json 契约与退出码、MCP 四工具签名、corpora.yaml 配置键、Llm 注入 seam）。
+- [change] scaffold: Makefile ir-check 条件化——golden diff 恒跑；fsir 工具链存在才重生成对照（开源用户无 fsir 可过）。ir/canopy.tsp 修正 TreeNode node_id 注释（先序 0000 起 → build_tree 文档序 1-based 0001 起，对齐 ADR-006 生产事实格式）并重钉 golden（注释级 diff）。
+- [change] docs: oss 自查——corpus.md 示例真实 vault 路径清成占位、migration.md launchd label 去个人化、测试假 key 改写；git grep 'tsinglungtseng|sk-' 全仓零命中。
 - [test] core: 解开源阻断项「fixture 含个人笔记」——16 对真实 vault fixture 移至已 gitignore 的 test/fixtures-local/（`CANOPY_LOCAL_FIXTURES=1` 门控附加运行，CI/外部贡献者自动跳过）；入仓替换为 12 对全合成 fixture（中文名/多级 heading/跳级/代码块伪标题/未闭合 fence/frontmatter/无标题/单行/空文件/标题密集/大文件/规范名形态），golden 仍由 Python 原版 md_to_tree 生成（scripts/gen-synthetic-fixtures.py，跨实现对照语义不变）。cli/daemon 测试改显式点名 fixture（去目录序隐式依赖）。门控全开 29 用例绿（12 合成 + 16 真实 + 计数）。
 
 ### 2026-06-11（M1–M6 实现 + e2e）

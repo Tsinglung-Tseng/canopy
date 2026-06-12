@@ -8,7 +8,7 @@ export type SchemaMode = "json_schema" | "json_object" | "off";
 export type IndexOutcome = "ok" | "skipped-unchanged";
 
 // ── DTO ──
-/** 文档树节点。node_id 为 4 位零填充字符串（先序重写，"0000" 起）。 */
+/** 文档树节点。node_id 为 4 位零填充字符串（build_tree 文档序 1-based，"0001" 起—— 生产事实格式，ADR-006）。 */
 export interface TreeNode {
   title: string;
   node_id: string;
@@ -44,7 +44,7 @@ export interface LlmSpec {
   baseURL: string;
   apiKey: string;
   model: string;
-  /** 文档化可选：缺省走 Plexus 默认（json_schema） */
+  /** 文档化可选：缺省 json_schema */
   schema?: SchemaMode;
 }
 
