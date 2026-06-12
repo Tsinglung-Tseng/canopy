@@ -1,8 +1,8 @@
-// llm — Canopy 所有 LLM 调用的唯一出口，基于 Plexus 原语组合（ADR-005）。
+// llm — Canopy 所有 LLM 调用的唯一出口，基于内核原语组合（ADR-005/ADR-008）。
 // Python 旧实现的 llm_completion 手写 retry → ask；extract_json 正则修补 → askSchema；
 // ThreadPoolExecutor → par；无 token 上限 → Budget fail-loud。
-import { ask, askSchema, par, ok, ZERO_COST } from "plexus";
-import type { Agent, Outcome } from "plexus";
+import { ask, askSchema, par, ok, ZERO_COST } from "./kernel.js";
+import type { Agent, Outcome } from "./kernel.js";
 import type { DocStructure, TreeNode } from "../types/canopy.types.js";
 import { structureToList } from "../core/tree.js";
 import { countTokens } from "../core/tokens.js";
@@ -26,7 +26,7 @@ export function summarizeNode(text: string, summaryTokenThreshold: number): Agen
 }
 
 /** chunked par：把并发限制在 width 内（分批 barrier）。
- *  Plexus par 本身无限幅；这里用原语组合实现限幅，不在本地私造新原语。 */
+ *  par 本身无限幅；这里用原语组合实现限幅。 */
 function parChunked<A>(agents: Array<Agent<A>>, width: number): Agent<Array<Outcome<A>>> {
   return async (ctx) => {
     const all: Array<Outcome<A>> = [];
@@ -97,8 +97,10 @@ export function selectRelevantNodes(
     `to the user's query.\n\n` +
     `User Query: "${query}"\n\n` +
     `Document Tree:\n${docSkeleton}\n\n` +
+    // "JSON" 一词必须出现：DeepSeek json_object 模式要求 prompt 含 "json" 字样，
+    // 否则 400 降级往返（实测 2026-06-12）。
     `Return the node IDs that contain information relevant to answering the query ` +
-    `as {"node_ids": ["0001", "0005"]}. If none are relevant, return {"node_ids": []}.`;
+    `as JSON: {"node_ids": ["0001", "0005"]}. If none are relevant, return {"node_ids": []}.`;
   return askSchema<{ node_ids: string[] }>(prompt, NODE_IDS_SCHEMA, {
     validate: (raw) => {
       const obj = raw as Record<string, unknown>;

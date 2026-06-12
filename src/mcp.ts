@@ -4,7 +4,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
-import { run } from "plexus";
+import { run } from "./llm/kernel.js";
 import type { CorpusConfig } from "./types/canopy.types.js";
 import { findDocs } from "./retrieval/docs.js";
 import { searchAgent } from "./search.js";

@@ -4,7 +4,7 @@
 // 日志/进度/Cost 摘要一律 stderr）。退出码：0=成功（含零命中）；1=运行错误；2=用法/配置错误。
 import { Command } from "commander";
 import { existsSync, readdirSync } from "node:fs";
-import { run, Budget, BudgetExhausted } from "plexus";
+import { run, Budget, BudgetExhausted } from "./llm/kernel.js";
 import { configureLogging, type LogLevel } from "./logging.js";
 import { ConfigError, loadCorpora, resolveCorpus } from "./corpus.js";
 import { findDocs } from "./retrieval/docs.js";

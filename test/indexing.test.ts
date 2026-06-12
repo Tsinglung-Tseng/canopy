@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { MockLlm } from "plexus";
+import { MockLlm } from "../src/llm/mock.js";
 import type { CorpusConfig } from "../src/types/canopy.types.js";
 import {
   getResultPath,

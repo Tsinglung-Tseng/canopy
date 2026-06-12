@@ -1,5 +1,9 @@
 # Canopy CHANGELOG
 
+### 2026-06-12（开源移植就绪）
+- [decision] llm: ADR-008——解开源阻断项 `"plexus": "file:../Plexus"`：Canopy 实际消费的 Plexus 原语子集内联为零依赖 `src/llm/kernel.ts`（Cost/Outcome/Budget/ask/askSchema/par/run）+ `openai.ts`（零 SDK OpenAI-compatible 后端，schema 三模式保留）+ `mock.ts`（MockLlm）。`Llm` 接口为 Plexus 的结构子集，Plexus 后端实例可直接注入（可选增强）；package.json 不再含 plexus。95 用例全绿 + 真 DeepSeek e2e（batch 索引 + 中文两阶段检索）复验。
+- [fix] llm: stage-2 prompt 补 "JSON" 一词——DeepSeek json_object 模式要求 prompt 含 "json" 字样，否则每次 stage-2 仍发生一次 400 降级往返；修后零降级。
+
 ### 2026-06-11（M1–M6 实现 + e2e）
 - [feature] scaffold: M1——package.json/tsconfig/Makefile；`ir/canopy.tsp`（TreeNode/DocStructure/CorpusConfig + namespace Api 输出契约）→ ts-obj emit `src/types/canopy.types.ts`，golden 钉死，`make ir-check` 闸。
 - [feature] core: M2——mdToTree 纯函数移植（heading 状态机/文本切片/thinning/栈式建树/键序 formatStructure）。golden 全量对照：4005 源中 2319 个未漂移源 100% 逐字段全等；16 fixture 进 test/。

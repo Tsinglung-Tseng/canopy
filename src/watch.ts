@@ -5,7 +5,7 @@
 // 热循环保险丝（同文件 60s 内 >10 次 → 熔断 10 分钟，旧实现缺这层，8668 次刷日志的放大器）。
 import { watch as chokidarWatch } from "chokidar";
 import { basename } from "node:path";
-import type { Llm } from "plexus";
+import type { Llm } from "./llm/kernel.js";
 import type { CorpusConfig } from "./types/canopy.types.js";
 import { indexFile } from "./indexing.js";
 import { getLogger, transientWarn } from "./logging.js";

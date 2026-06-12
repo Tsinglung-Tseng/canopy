@@ -1,8 +1,8 @@
 // search — 两阶段检索编排：BM25 stage-1 → LLM stage-2（节点选择）→ 可选答案合成。
 // 移植 molly.pageindex retrieval.py 的 search_notes_impl / search_notes_structured，
 // LLM 调用全部经由 src/llm/（Plexus 原语）。
-import type { Agent } from "plexus";
-import { ok } from "plexus";
+import type { Agent } from "./llm/kernel.js";
+import { ok } from "./llm/kernel.js";
 import type { SearchHit, NodeHit } from "./types/canopy.types.js";
 import { findDocs, treeSummary, nodeMap } from "./retrieval/docs.js";
 import { selectNodesForDocs, synthesizeAnswer } from "./llm/agents.js";

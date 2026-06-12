@@ -18,8 +18,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { basename, join, relative, resolve, sep } from "node:path";
-import { run } from "plexus";
-import type { Llm } from "plexus";
+import { run } from "./llm/kernel.js";
+import type { Llm } from "./llm/kernel.js";
 import type { BatchReport, CorpusConfig, DocStructure, IndexReport } from "./types/canopy.types.js";
 import { mdToTree } from "./core/tree.js";
 import { buildSummaries } from "./llm/agents.js";

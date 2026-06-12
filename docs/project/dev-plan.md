@@ -22,7 +22,7 @@
 | 基座 | 消费方式 | 本仓自持有物 |
 |---|---|---|
 | 石笋 fullStackIR | `ir/canopy.tsp` 定义核心数据契约（TreeNode / DocStructure / CorpusConfig / SearchHit），ts-obj emit 到 `src/types/canopy.types.ts`（只读，golden + `make ir-check`） | `ir/canopy.tsp`、`golden/` |
-| Plexus | **直接 import**（Canopy 即 TS，无需 sidecar）。消费原语：`ask`（节点摘要/答案合成）、`askSchema`（stage-2 节点选择，替代 Python 版 extract_json 正则修补）、`par`（并发 LLM 调用）、`Budget`（token 上限 fail-loud）、MockLlm（确定性测试） | `src/llm/`（agent 组合代码）、Makefile `agents-*` 靶 |
+| Plexus | **可选注入**（ADR-008，开源移植后改）：实际消费的原语子集（`ask`/`askSchema`/`par`/`Budget`/`run`/MockLlm）已内联为 `src/llm/kernel.ts`（接口与 Plexus 结构兼容，Plexus 后端实例可直接注入）；Plexus 仍是这些原语的上游真相源 | `src/llm/`（kernel + agent 组合代码）、Makefile `agents-*` 靶 |
 
 铁律继承：元语缺口回基座做（proposal→ADR→test）不本地私接；生成文件只读；fail loud 无静默兜底；MockLlm 确定性回归。
 
