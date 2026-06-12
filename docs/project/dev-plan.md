@@ -60,6 +60,14 @@
 
 ## 📝 开发记录
 
+### 2026-06-12 — 开源移植就绪（portability readiness）
+
+- **背景**：交付方式变更——本仓开发完成后整体移植到 molly.pageindex（已开源仓）对外发布。两个开源阻断项：plexus file: 私有依赖、fixture 含真实 vault 笔记。
+- **阻断项 1（ADR-008）**：Canopy 消费的 Plexus 原语子集内联为零依赖 `src/llm/kernel.ts` + `openai.ts` + `mock.ts`；`Llm` 接口为 Plexus 的结构子集（后端实例可注入，无需 import）；package.json/lockfile 零 plexus。真 DeepSeek e2e 复验；顺手消除 stage-2 的 json_object 400 降级往返（prompt 补 "JSON" 一词）。
+- **阻断项 2**：16 对真实 fixture → gitignore 的 `test/fixtures-local/`（`CANOPY_LOCAL_FIXTURES=1` 门控）；入仓 12 对全合成 fixture（golden 仍由 Python 原版生成，跨实现对照语义不变）。门控全开 29 golden 用例绿。
+- **次要**：COMPATIBILITY.md 冻结对外兼容面；Makefile ir-check 无 fsir 跳过重生成（golden diff 恒跑）；oss 自查清零（个人路径/假 key/示例占位）。
+- **验收实测**：临时 clone + 改名 ~/scaffold/Plexus + FSIR_HOME 指空 + 无 fixtures-local → npm install / build / make test（91 用例）/ ir-check 全过。
+
 ### 2026-06-11 — M1–M6 全量实现 + 端到端验证
 
 - **交付**：src ≈ 1.7k 行 TS（core/retrieval/llm/corpus/indexing/cli/mcp/watch/logging/search/grep + 生成 types）+ 测试 9 文件 95 用例全绿；`make ir-check` / typecheck / build 全过。
