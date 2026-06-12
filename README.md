@@ -1,5 +1,9 @@
 # Canopy 🌳
 
+> **⚠️ 开发已迁移（2026-06-12）**：Canopy 已整体移植到
+> [molly.pageindex](https://github.com/Tsinglung-Tseng/molly.pageindex) 作为其新实现，
+> 后续开发在该仓进行；本仓冻结为开发历史存档（M0–M6 + 移植就绪全过程）。
+
 树状文档索引 + 两阶段检索（BM25 → LLM tree search）的独立 CLI 工具库。从 molly.pageindex 提炼重写（TypeScript），以 **corpus** 为一等抽象，一套工具服务任意文本集（Obsidian vault、书库、更大的外部文本集）。
 
 > 命名谱系：Aquifer（含水层）· 石笋（fullStackIR）· Plexus（神经丛）→ **Canopy**（树冠层），文档树的顶视图。
