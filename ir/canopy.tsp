@@ -155,12 +155,22 @@ model BatchFailure {
   error: string;
 }
 
+/** 本轮实际重索引的单文件（源 + 产物路径），供下游应用层（如 frontmatter 回写）消费。 */
+model IndexedFile {
+  /** 源文件绝对路径 */
+  file: string;
+  /** 产物 _structure.json 绝对路径 */
+  result_path: string;
+}
+
 model BatchReport {
   corpus: string;
   indexed: int32;
   skipped: int32;
   failed: int32;
   failures: BatchFailure[];
+  /** 本轮实际重索引的文件（outcome=ok），供回写等下游消费 */
+  indexed_files: IndexedFile[];
   /** 源已删被清理的产物文件名 */
   orphans_removed: string[];
 }

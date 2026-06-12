@@ -3,7 +3,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, existsSync, readdirSync, rmSync, symlinkSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, basename } from "node:path";
 import { MockLlm } from "../src/llm/mock.js";
 import type { CorpusConfig, TreeNode } from "../src/types/canopy.types.js";
 import {
@@ -219,12 +219,17 @@ describe("listSourceFiles / 批量", () => {
     const report = await indexBatch(corpus, llm);
     expect(report.indexed).toBe(2);
     expect(report.failed).toBe(0);
+    // indexed_files 列出本轮重索引的源+产物路径（供回写消费），计数与 indexed 一致
+    expect(report.indexed_files.length).toBe(2);
+    expect(report.indexed_files.map((f) => basename(f.file)).sort()).toEqual(["a.md", "b.md"]);
+    expect(report.indexed_files.every((f) => f.result_path.endsWith("_structure.json"))).toBe(true);
     expect(report.orphans_removed).toEqual(["ghost_structure.json"]);
     expect(existsSync(join(root, "results/ghost_structure.json"))).toBe(false);
     // 二跑全 skip
     const report2 = await indexBatch(corpus, llm);
     expect(report2.indexed).toBe(0);
     expect(report2.skipped).toBe(2);
+    expect(report2.indexed_files).toEqual([]);
   });
 
   it("单文件失败计入 failures，其余继续", async () => {

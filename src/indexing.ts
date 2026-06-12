@@ -268,13 +268,15 @@ export async function indexBatch(
   opts: IndexFileOpts = {},
 ): Promise<BatchReport> {
   const files = listSourceFiles(corpus);
-  let indexed = 0;
   let skipped = 0;
+  // 本轮真正重索引（outcome=ok）的源+产物路径——供下游应用层（frontmatter 回写）消费，
+  // 不必自己再扫一遍 vault 重判增量。indexed 计数 = indexed_files.length。
+  const indexedFiles: Array<{ file: string; result_path: string }> = [];
   const failures: Array<{ file: string; error: string }> = [];
   for (const f of files) {
     try {
       const r = await indexFile(corpus, llm, f, opts);
-      if (r.outcome === "ok") indexed++;
+      if (r.outcome === "ok") indexedFiles.push({ file: r.file, result_path: r.result_path });
       else skipped++;
     } catch (e) {
       failures.push({ file: f, error: e instanceof Error ? e.message : String(e) });
@@ -284,10 +286,11 @@ export async function indexBatch(
   const orphansRemoved = cleanupOrphans(corpus);
   return {
     corpus: corpus.name,
-    indexed,
+    indexed: indexedFiles.length,
     skipped,
     failed: failures.length,
     failures,
+    indexed_files: indexedFiles,
     orphans_removed: orphansRemoved,
   };
 }
