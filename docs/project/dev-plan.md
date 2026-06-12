@@ -61,7 +61,17 @@
 
 ## 📝 开发记录
 
-### 2026-06-12 — 开源移植就绪（portability readiness）
+### 2026-06-12 — 标准仓回迁 + molly.pageindex 弃用归档（策略反转）
+
+- **背景**：推翻"开发完落仓 molly.pageindex（fork of VectifyAI/PageIndex）对外发布"的方案（见下方 portability readiness 记录，已作废）。理由：不愿以 fork 血缘 + 臃肿历史 + Python 应用层混杂的仓对外发布。**本仓 `~/scaffold/canopy` 重新作为 Canopy 的标准/对外发布仓**，GitHub `github.com/Tsinglung-Tseng/canopy`（public 新建）。
+- **同步**：把 molly.pageindex 落仓后产生的全部后续提交逐字回迁本仓——realpath 跟符号链接、watch followSymlinks=false（EMFILE）、语义增量 volatileFrontmatterKeys + state 并发安全/自愈、watch 串行链、M8.5 节点级摘要复用。100 测试全绿 / build / ir-check 通过。
+- **molly.pageindex 弃用**：GitHub 仓 archived（只读）+ README 弃用 banner 指向本仓；本地目录 **更名 `~/scaffold/molly.pageindex.archived`**（标定过时），保留为历史存档 + 运行时数据宿主（`results/` 索引产物 27MB 按 ADR-006 保留）。
+- **运行时三消费方切换**（M7 的运维半边落地）：① MCP 注册（user scope，名仍叫 `pageindex` 保 tool 引用兼容）→ `canopy/dist/cli.js mcp`；② Molly worker watcher startCwd → `~/scaffold/canopy`；③ 3am launchd batch 引擎经 `CANOPY_CLI` env 注入指向 `canopy/dist`，但应用层编排器（frontmatter 回写 / Telegram 日报 / 状态 diff，canopy 按 ADR-007 永久不含）继续留 `.archived/legacy/`。配置发现走固定路径 `~/.config/canopy/corpora.yaml`（cwd 无关），resultsDir 已改指 `.archived/results`。
+- **仍待办**：readers.myapp / library-search adapter 迁移（M7 消费方半边）；彻底把回写/TG 编排移植出 molly（option 3，未做）。
+
+### 2026-06-12 — 开源移植就绪（portability readiness）⚠️ 已被上条反转
+
+> 注：本记录描述的"移植到 molly.pageindex 对外发布"方案已于同日推翻，见上条。portability 工程（零依赖 kernel / 合成 fixture / 兼容面冻结）仍有效且保留在本仓。
 
 - **背景**：交付方式变更——本仓开发完成后整体移植到 molly.pageindex（已开源仓）对外发布。两个开源阻断项：plexus file: 私有依赖、fixture 含真实 vault 笔记。
 - **阻断项 1（ADR-008）**：Canopy 消费的 Plexus 原语子集内联为零依赖 `src/llm/kernel.ts` + `openai.ts` + `mock.ts`；`Llm` 接口为 Plexus 的结构子集（后端实例可注入，无需 import）；package.json/lockfile 零 plexus。真 DeepSeek e2e 复验；顺手消除 stage-2 的 json_object 400 降级往返（prompt 补 "JSON" 一词）。
