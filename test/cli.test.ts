@@ -3,7 +3,7 @@
 // 通过 spawn 真实进程验证——这是跨语言消费方（readers/library-search）依赖的边界。
 import { describe, it, expect, beforeAll } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, mkdirSync, copyFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,9 +36,15 @@ beforeAll(() => {
   mkdirSync(results);
   writeFileSync(join(vault, "rust-notes.md"), "# Rust ownership\nborrow checker lifetimes\n");
   writeFileSync(join(vault, "cooking.md"), "# Pasta\nboil water al dente\n");
-  // 用真实 golden 产物喂 find（与 molly.pageindex 混读验证的一部分）
+  // 用 golden 产物喂 find（Python 生成产物混读验证的一部分）。显式点名，不依赖目录序。
   const goldenDir = join(here, "fixtures/golden");
-  for (const f of readdirSync(goldenDir).slice(0, 5)) {
+  for (const f of [
+    "AI_编码助手对比_Claude-Code-Workflow_structure.json",
+    "AI_装配线笔记_Agent-Pipeline_structure.json",
+    "Database_合成示例_全文索引_structure.json",
+    "Tech__Tool_命令行示例_CLI-Guide_structure.json",
+    "中文长文_合成播客转写_structure.json",
+  ]) {
     copyFileSync(join(goldenDir, f), join(results, f));
   }
   configPath = join(root, "corpora.yaml");

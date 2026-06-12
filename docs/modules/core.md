@@ -1,6 +1,6 @@
 # core — markdown → 文档树
 
-状态：已实现（`src/core/tree.ts` + `src/core/tokens.ts`，2026-06-11；golden 16 fixture + 全量 2319 源 100% 全等）
+状态：已实现（`src/core/tree.ts` + `src/core/tokens.ts`，2026-06-11；golden 12 对合成 fixture（Python 原版生成）+ 真实语料 local-only 门控；全量 2319 源 100% 全等（2026-06-11 记录））
 
 ## 职责
 

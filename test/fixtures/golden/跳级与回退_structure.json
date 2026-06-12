@@ -1,0 +1,40 @@
+{
+  "doc_name": "跳级与回退",
+  "line_count": 20,
+  "structure": [
+    {
+      "title": "顶层",
+      "node_id": "0001",
+      "line_num": 1,
+      "text": "# 顶层\n\n正文 A",
+      "nodes": [
+        {
+          "title": "直接跳到四级",
+          "node_id": "0002",
+          "line_num": 5,
+          "text": "#### 直接跳到四级\n\n正文 B"
+        },
+        {
+          "title": "回到二级",
+          "node_id": "0003",
+          "line_num": 9,
+          "text": "## 回到二级\n\n正文 C",
+          "nodes": [
+            {
+              "title": "再跳到六级",
+              "node_id": "0004",
+              "line_num": 13,
+              "text": "###### 再跳到六级\n\n正文 D"
+            },
+            {
+              "title": "回到三级",
+              "node_id": "0005",
+              "line_num": 17,
+              "text": "### 回到三级\n\n正文 E"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

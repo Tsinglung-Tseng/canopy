@@ -1,0 +1,98 @@
+{
+  "doc_name": "AI_装配线笔记_Agent-Pipeline",
+  "line_count": 52,
+  "structure": [
+    {
+      "title": "Agent 装配线笔记",
+      "node_id": "0001",
+      "line_num": 1,
+      "text": "# Agent 装配线笔记\n\n虚构的多代理装配线设计草稿，Claude Code 充当装配线的执行单元。",
+      "nodes": [
+        {
+          "title": "工位 1",
+          "node_id": "0002",
+          "line_num": 5,
+          "text": "## 工位 1\n\n工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位1负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 1 的验收",
+              "node_id": "0003",
+              "line_num": 9,
+              "text": "### 工位 1 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        },
+        {
+          "title": "工位 2",
+          "node_id": "0004",
+          "line_num": 13,
+          "text": "## 工位 2\n\n工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位2负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 2 的验收",
+              "node_id": "0005",
+              "line_num": 17,
+              "text": "### 工位 2 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        },
+        {
+          "title": "工位 3",
+          "node_id": "0006",
+          "line_num": 21,
+          "text": "## 工位 3\n\n工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位3负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 3 的验收",
+              "node_id": "0007",
+              "line_num": 25,
+              "text": "### 工位 3 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        },
+        {
+          "title": "工位 4",
+          "node_id": "0008",
+          "line_num": 29,
+          "text": "## 工位 4\n\n工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位4负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 4 的验收",
+              "node_id": "0009",
+              "line_num": 33,
+              "text": "### 工位 4 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        },
+        {
+          "title": "工位 5",
+          "node_id": "0010",
+          "line_num": 37,
+          "text": "## 工位 5\n\n工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位5负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 5 的验收",
+              "node_id": "0011",
+              "line_num": 41,
+              "text": "### 工位 5 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        },
+        {
+          "title": "工位 6",
+          "node_id": "0012",
+          "line_num": 45,
+          "text": "## 工位 6\n\n工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。 工位6负责把上游产物转换为下游输入，失败时整线停机（fail loud）。日志只进 stderr，stdout 保持纯净。",
+          "nodes": [
+            {
+              "title": "工位 6 的验收",
+              "node_id": "0013",
+              "line_num": 49,
+              "text": "### 工位 6 的验收\n\n验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。 验收标准写成可执行断言，golden 文件钉死字节格式。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

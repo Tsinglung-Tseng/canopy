@@ -1,9 +1,13 @@
-// M2 golden：16 个代表性真实产物（中文名、嵌套目录、代码块重、大文件）对照。
-// fixture 采自 molly.pageindex results/RPG 与 vault 快照中「源未漂移」（line_count 相等）
-// 的配对；全量验证记录：4005 个源文件中 2319 个未漂移源 100% 逐字段全等（2026-06-11，
-// scripts/compare-golden.ts）。差异 = bug，不许"差不多"。
+// M2 golden：12 对合成 fixture（中文名/多级 heading/跳级/代码块伪标题/未闭合 fence/
+// frontmatter/无标题/单行/空文件/标题密集/大文件/规范名形态）对照。
+// golden 由 Python 原版 md_to_tree 生成（scripts/gen-synthetic-fixtures.py，参数复刻
+// 生产事实格式），测试方为 TS mdToTree——跨实现对照。差异 = bug，不许"差不多"。
+//
+// 历史验证记录（真实语料，local-only）：4005 个 vault 源文件中 2319 个未漂移源
+// 100% 逐字段全等（2026-06-11，scripts/compare-golden.ts）。真实语料 fixture 在
+// 已 gitignore 的 test/fixtures-local/，设 CANOPY_LOCAL_FIXTURES=1 时附加运行。
 import { describe, it, expect } from "vitest";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { mdToTree } from "../src/core/tree.js";
@@ -11,6 +15,8 @@ import { mdToTree } from "../src/core/tree.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const mdDir = join(here, "fixtures/md");
 const goldenDir = join(here, "fixtures/golden");
+const localMdDir = join(here, "fixtures-local/md");
+const localGoldenDir = join(here, "fixtures-local/golden");
 
 /** 递归去掉 summary/prefix_summary（LLM 字段，core 不产）。保持其余键序。 */
 function stripSummaries(node: unknown): unknown {
@@ -52,22 +58,32 @@ function assertDeepEqualOrdered(actual: unknown, expected: unknown, path: string
   expect(actual, path).toBe(expected);
 }
 
-describe("core golden：mdToTree 与既有产物逐字段一致（去 summary 后）", () => {
-  const fixtures = readdirSync(mdDir).filter((f) => f.endsWith(".md"));
-  it("fixture 数量正确", () => {
-    expect(fixtures.length).toBe(16);
+function goldenSuite(name: string, md: string, golden: string): void {
+  describe(name, () => {
+    const fixtures = readdirSync(md).filter((f) => f.endsWith(".md"));
+    for (const mdFile of fixtures) {
+      it(mdFile, () => {
+        const content = readFileSync(join(md, mdFile), "utf-8");
+        const goldenRaw = JSON.parse(
+          readFileSync(join(golden, mdFile.replace(/\.md$/, "_structure.json")), "utf-8"),
+        ) as { doc_name: string };
+        // doc_name 由调用方（indexing）从源路径取 basename，core 只透传——以 golden 自带值喂入
+        const mine = mdToTree(content, { docName: goldenRaw.doc_name, withText: true });
+        const expected = stripSummaries(goldenRaw);
+        assertDeepEqualOrdered(JSON.parse(JSON.stringify(mine)), expected, "$");
+      });
+    }
   });
+}
 
-  for (const mdFile of fixtures) {
-    it(mdFile, () => {
-      const content = readFileSync(join(mdDir, mdFile), "utf-8");
-      const goldenRaw = JSON.parse(
-        readFileSync(join(goldenDir, mdFile.replace(/\.md$/, "_structure.json")), "utf-8"),
-      ) as { doc_name: string };
-      // doc_name 由调用方（indexing）从源路径取 basename，core 只透传——以 golden 自带值喂入
-      const mine = mdToTree(content, { docName: goldenRaw.doc_name, withText: true });
-      const golden = stripSummaries(goldenRaw);
-      assertDeepEqualOrdered(JSON.parse(JSON.stringify(mine)), golden, "$");
-    });
-  }
+describe("core golden：mdToTree 与 Python 原版产物逐字段一致（去 summary 后）", () => {
+  it("合成 fixture 数量正确", () => {
+    expect(readdirSync(mdDir).filter((f) => f.endsWith(".md")).length).toBe(12);
+  });
 });
+goldenSuite("core golden：合成 fixture（Python md_to_tree 生成）", mdDir, goldenDir);
+
+// 真实语料对照：local-only。环境变量门控 + 目录存在才跑（CI/外部贡献者自动跳过）。
+if (process.env["CANOPY_LOCAL_FIXTURES"] === "1" && existsSync(localMdDir)) {
+  goldenSuite("core golden：真实语料 fixture（local-only）", localMdDir, localGoldenDir);
+}

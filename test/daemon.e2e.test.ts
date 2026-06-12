@@ -4,7 +4,7 @@
 //      stdout 每行都必须是合法 JSON-RPC（纯净纪律的可执行断言）。
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { mkdtempSync, writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync, copyFileSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync, existsSync, readFileSync, copyFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,7 +25,14 @@ beforeAll(() => {
   mkdirSync(vault);
   mkdirSync(results);
   const goldenDir = join(here, "fixtures/golden");
-  for (const f of readdirSync(goldenDir).slice(0, 3)) copyFileSync(join(goldenDir, f), join(results, f));
+  // 显式点名 golden 产物，不依赖目录序（find_notes 查询 "claude code" 依赖 fixture 内容）
+  for (const f of [
+    "AI_编码助手对比_Claude-Code-Workflow_structure.json",
+    "AI_装配线笔记_Agent-Pipeline_structure.json",
+    "Database_合成示例_全文索引_structure.json",
+  ]) {
+    copyFileSync(join(goldenDir, f), join(results, f));
+  }
   configPath = join(root, "corpora.yaml");
   writeFileSync(
     configPath,

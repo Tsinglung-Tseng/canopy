@@ -1,0 +1,20 @@
+{
+  "doc_name": "frontmatter_注意事项",
+  "line_count": 14,
+  "structure": [
+    {
+      "title": "带 frontmatter 的笔记",
+      "node_id": "0001",
+      "line_num": 7,
+      "text": "# 带 frontmatter 的笔记\n\nfrontmatter 的分隔线与键值不是标题。",
+      "nodes": [
+        {
+          "title": "正文段",
+          "node_id": "0002",
+          "line_num": 11,
+          "text": "## 正文段\n\nfrontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。 frontmatter 之后的结构照常解析。"
+        }
+      ]
+    }
+  ]
+}

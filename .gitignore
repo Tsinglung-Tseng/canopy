@@ -2,3 +2,6 @@ node_modules/
 dist/
 *.log
 .DS_Store
+
+# 真实 vault 语料对照（local-only，外部贡献者/CI 无此目录则跳过）
+test/fixtures-local/

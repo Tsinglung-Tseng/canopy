@@ -1,0 +1,46 @@
+{
+  "doc_name": "Tech__Tool_命令行示例_CLI-Guide",
+  "line_count": 26,
+  "structure": [
+    {
+      "title": "命令行工具示例指南",
+      "node_id": "0001",
+      "line_num": 1,
+      "text": "# 命令行工具示例指南\n\n虚构 CLI 指南，文件名模拟「目录__子目录_笔记」规范名形态。",
+      "nodes": [
+        {
+          "title": "安装",
+          "node_id": "0002",
+          "line_num": 5,
+          "text": "## 安装\n\n```bash\n# 安装\nnpm install -g example-cli\nexample-cli index --corpus demo\n```"
+        },
+        {
+          "title": "子命令",
+          "node_id": "0003",
+          "line_num": 13,
+          "text": "## 子命令",
+          "nodes": [
+            {
+              "title": "index",
+              "node_id": "0004",
+              "line_num": 15,
+              "text": "### index\n\n建立索引，重复执行按 md5 跳过未变更源。"
+            },
+            {
+              "title": "search",
+              "node_id": "0005",
+              "line_num": 19,
+              "text": "### search\n\n两阶段检索：BM25 召回后由 LLM 选节点。"
+            }
+          ]
+        },
+        {
+          "title": "退出码",
+          "node_id": "0006",
+          "line_num": 23,
+          "text": "## 退出码\n\n0 成功（含零命中）；1 运行错误；2 用法错误。"
+        }
+      ]
+    }
+  ]
+}

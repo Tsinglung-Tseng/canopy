@@ -49,7 +49,7 @@
 - [x] M0.1 精简版评估与切线：移植清单实测、风险登记、ADR-007（2026-06-11）
 - [ ] M0.5 运维止血（不等重写）：truncate `molly.pageindex/mcp_server.log`（1.4 GB）与 `molly.tagger/watcher.log`（12 MB）；molly.pageindex 临时加 RotatingFileHandler + `.claude/worktrees/` 过滤，撑到 M7 退役
 - [x] M1 仓库脚手架：package.json / tsconfig / Makefile（ir-gen / ir-check / agents-typecheck / agents-test）；`ir/canopy.tsp` 首版 + ts-obj emit + 钉 golden（2026-06-11）
-- [x] M2 core：md→tree 纯函数移植；golden 验收超额完成——全量 4005 源文件中 2319 个未漂移源 **100% 逐字段全等**（含键序），16 个代表性 fixture 钉入 test/（2026-06-11）
+- [x] M2 core：md→tree 纯函数移植；golden 验收超额完成——全量 4005 源文件中 2319 个未漂移源 **100% 逐字段全等**（含键序），16 个代表性 fixture 钉入 test/（2026-06-11；2026-06-12 替换为 12 对合成 fixture 入仓，真实语料对照转 local-only 门控）
 - [x] M3 retrieval：tokenize + BM25 + MemoryBM25Backend + `canopy find`；BM25 分数与 Python 原版对照容差 1e-9；jieba 差异验收 = 8 条历史 query top-5 重叠率 **97%**（2026-06-11）
 - [x] M4 Plexus 接入：summarize（par+ask）/ selectNodes（askSchema）/ synthesize、Budget fail-loud；MockLlm 测试绿（2026-06-11）
 - [x] M5 CLI 完整（index/batch/find/search/grep/corpora + --json + 退出码 0/1/2）+ logging 三铁律（强约束 grep 全过）+ 兼容序列化器（`JSON.stringify(x,null,2)` 与 Python `json.dumps(indent=2, ensure_ascii=False)` 实测逐字节 roundtrip；混读混写双向验证）（2026-06-11）

@@ -1,0 +1,64 @@
+{
+  "doc_name": "标题密集_无正文",
+  "line_count": 9,
+  "structure": [
+    {
+      "title": "一级",
+      "node_id": "0001",
+      "line_num": 1,
+      "text": "# 一级",
+      "nodes": [
+        {
+          "title": "二级甲",
+          "node_id": "0002",
+          "line_num": 2,
+          "text": "## 二级甲",
+          "nodes": [
+            {
+              "title": "三级",
+              "node_id": "0003",
+              "line_num": 3,
+              "text": "### 三级",
+              "nodes": [
+                {
+                  "title": "四级",
+                  "node_id": "0004",
+                  "line_num": 4,
+                  "text": "#### 四级",
+                  "nodes": [
+                    {
+                      "title": "五级",
+                      "node_id": "0005",
+                      "line_num": 5,
+                      "text": "##### 五级",
+                      "nodes": [
+                        {
+                          "title": "六级",
+                          "node_id": "0006",
+                          "line_num": 6,
+                          "text": "###### 六级"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "二级乙",
+          "node_id": "0007",
+          "line_num": 7,
+          "text": "## 二级乙"
+        }
+      ]
+    },
+    {
+      "title": "另一个一级",
+      "node_id": "0008",
+      "line_num": 8,
+      "text": "# 另一个一级"
+    }
+  ]
+}
