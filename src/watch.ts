@@ -22,6 +22,11 @@ interface PathState {
   version: number;
   events: number[]; // 滚动窗口内的触发时间戳（保险丝）
   fusedUntil: number;
+  /** 同路径任务串行链：iCloud 在本地落盘后数秒会再触发一次同步事件，若与上一次
+   *  索引（LLM 数秒）并行，md5 记录尚未落盘 → 跳过判定扑空 → 同文件双倍全量重索引
+   *  （实测 2026-06-12：单次原子写入产物被重写两遍）。串行后第二个事件在第一个
+   *  完成后再跑：md5 已记录、内容未变 → 零成本跳过。 */
+  chain: Promise<void>;
 }
 
 export async function startWatch(corpus: CorpusConfig, llm: Llm): Promise<void> {
@@ -31,6 +36,10 @@ export async function startWatch(corpus: CorpusConfig, llm: Llm): Promise<void> 
   const watcher = chokidarWatch(corpus.source.dir, {
     ignored: (path: string) => basename(path).startsWith("."), // 点目录/点文件最前置过滤
     ignoreInitial: true,
+    // 不跟符号链接（对齐 Python watchdog 行为）：vault 内的 symlink 可能指向整个
+    // 代码仓（node_modules 数万目录 → EMFILE）甚至构成环（链接回本仓 results/）。
+    // 实测 2026-06-12：RPG vault Projects/ 下 164 个链接，不关此项 watch 起即爆。
+    followSymlinks: false,
     awaitWriteFinish: { stabilityThreshold: 1000, pollInterval: 200 },
   });
 
@@ -55,7 +64,7 @@ export async function startWatch(corpus: CorpusConfig, llm: Llm): Promise<void> 
     const now = Date.now();
     let state = states.get(path);
     if (!state) {
-      state = { version: 0, events: [], fusedUntil: 0 };
+      state = { version: 0, events: [], fusedUntil: 0, chain: Promise.resolve() };
       states.set(path, state);
     }
     if (now < state.fusedUntil) return; // 熔断中：不进队列不进日志
@@ -71,7 +80,8 @@ export async function startWatch(corpus: CorpusConfig, llm: Llm): Promise<void> 
     const version = state.version;
     if (state.timer) clearTimeout(state.timer);
     state.timer = setTimeout(() => {
-      void handle(path, state as PathState, version);
+      const st = state as PathState;
+      st.chain = st.chain.then(() => handle(path, st, version));
     }, debounceMs);
   }
 

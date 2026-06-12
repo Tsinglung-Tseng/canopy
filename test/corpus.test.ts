@@ -1,6 +1,6 @@
 // corpus 解析 fail-loud 测试：未知键、缺环境变量、缺字段、重名、找不到配置。
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
-import { mkdtempSync, writeFileSync, mkdirSync } from "node:fs";
+import { mkdtempSync, writeFileSync, mkdirSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadCorpora, resolveCorpus, ConfigError } from "../src/corpus.js";
@@ -33,7 +33,8 @@ ${extra}`;
 }
 
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), "canopy-corpus-"));
+  // realpath：macOS /var → /private/var 符号链接；对齐 loadCorpora 的 realpath 行为
+  dir = realpathSync(mkdtempSync(join(tmpdir(), "canopy-corpus-")));
   srcDir = join(dir, "src");
   mkdirSync(srcDir);
   process.env["CANOPY_TEST_BASE_URL"] = "https://example.com/v1";

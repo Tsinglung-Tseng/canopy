@@ -63,6 +63,8 @@ export interface CorpusConfig {
   timeoutSec?: number;
   /** watch 防抖秒数（文档化可选，缺省 2） */
   debounceSec?: number;
+  /** 增量判定时从 frontmatter 剔除的易变键（文档化可选，缺省不剔除）。 用途：updatetime 类自动戳、writeback 回写的 auto_summary* ——这些字段的 变更不应触发整篇重索引（节点摘要全量重生成）与 watch 自激。 */
+  volatileFrontmatterKeys?: string[];
 }
 
 /** canopy find 单条命中（stage-1 BM25） */

@@ -1,5 +1,16 @@
 # Canopy CHANGELOG
 
+### 2026-06-12（移植落仓 + M7 指针切换 + 真实 vault 暴露的四连修）
+- [feature] project: Canopy 整体移植入本仓（molly.pageindex）作为新实现；Python 应用层归档 legacy/（pageindex/ 包暂留根，readers/library-search 迁移前保持可导入）。
+- [change] migration: M7 三指针切换——MCP 注册（~/.claude.json pageindex → canopy mcp，1.5GB 日志根源关闭）、launchd pageindex-batch（batch_index.py 留任编排器，单文件索引 spawn canopy index --json）、Molly worker（main.py web supervisor → canopy watch，web UI 随退役）。
+- [fix] indexing/corpus: 路径语义对齐 Python——corpus dir/resultsDir 解析后 realpath；getResultPath 词法优先（保留 vault 内符号链接挂载的路径身份）+ realAbs 兜底（symlink 入口写法）。
+- [fix] watch: followSymlinks=false——vault Projects/ 下 164 个符号链接指向整代码仓（node_modules 级），chokidar 跟链接启动即 EMFILE。
+- [fix] indexing: state 侧车并发安全——唯一 tmp 名（pid+序号）原子写；损坏自愈（隔离留证 + warn + 收养重建）。实测事故：batch 并发 spawn 共享 tmp 名互相 rename + 交错写坏 state，后续 751 调用全军覆没。
+- [feature] indexing: 语义增量 volatileFrontmatterKeys——updatetime 自动戳、writeback 回写的 auto_summary* 不再触发整篇重索引，消除 batch→writeback→watch 自激双烧。实测：751 文件批量 68s，742 跳过（零 LLM）/ 9 真重建 / 0 失败。
+- [fix] legacy: batch writeback 门控（skipped 不回写）；tg_send 4096 截断。
+- [fix] watch: 同路径任务串行链——同文件相邻事件并行索引时，前一次的 md5 记录未落盘导致跳过判定扑空（双倍全量重索引）；串行后第二个事件零成本跳过。
+- [discovery] watch: 与 molly.tagger 的流水线互喂——编辑触发索引后 tagger ~4s 回写 tags frontmatter 再触发一遍（两次都是真实变更）。缓解：vault corpus debounceSec 2→15（编辑与标签回写合并为一次索引）。根治登记 M8：节点级摘要复用（只重生成变更节点，小改动 33 调用 → 1–2 调用）。
+
 ### 2026-06-12（开源移植就绪）
 - [decision] llm: ADR-008——解开源阻断项 `"plexus": "file:../Plexus"`：Canopy 实际消费的 Plexus 原语子集内联为零依赖 `src/llm/kernel.ts`（Cost/Outcome/Budget/ask/askSchema/par/run）+ `openai.ts`（零 SDK OpenAI-compatible 后端，schema 三模式保留）+ `mock.ts`（MockLlm）。`Llm` 接口为 Plexus 的结构子集，Plexus 后端实例可直接注入（可选增强）；package.json 不再含 plexus。95 用例全绿 + 真 DeepSeek e2e（batch 索引 + 中文两阶段检索）复验。
 - [fix] llm: stage-2 prompt 补 "JSON" 一词——DeepSeek json_object 模式要求 prompt 含 "json" 字样，否则每次 stage-2 仍发生一次 400 降级往返；修后零降级。

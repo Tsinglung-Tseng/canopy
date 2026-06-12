@@ -1,7 +1,7 @@
 // corpus — corpora.yaml 多文本集注册与解析。解析即崩，不留到运行中（fail-loud）。
 // 路径解析：CANOPY_CONFIG 环境变量 > ~/.config/canopy/corpora.yaml；找不到即报错退出，
 // 不生成默认配置。${VAR} 展开为环境变量，未定义即报错（沿用 library-search 验证过的纪律）。
-import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
@@ -42,6 +42,7 @@ const CORPUS_KEYS = new Set([
   "concurrency",
   "timeoutSec",
   "debounceSec",
+  "volatileFrontmatterKeys",
 ]);
 const SOURCE_KEYS = new Set(["dir", "glob", "ignore"]);
 const LLM_KEYS = new Set(["baseURL", "apiKey", "model", "schema"]);
@@ -87,18 +88,22 @@ function parseCorpus(raw: unknown, index: number): CorpusConfig {
   if (!sourceRaw || typeof sourceRaw !== "object") throw new ConfigError(`${where}: 缺 source`);
   const source = sourceRaw as Record<string, unknown>;
   rejectUnknownKeys(source, SOURCE_KEYS, `${where}.source`);
-  const dir = resolve(expandTilde(requireString(source, "dir", `${where}.source`)));
-  if (!existsSync(dir) || !statSync(dir).isDirectory()) {
-    throw new ConfigError(`${where}: source.dir 不存在或不是目录: ${dir}`);
+  const dirLexical = resolve(expandTilde(requireString(source, "dir", `${where}.source`)));
+  if (!existsSync(dirLexical) || !statSync(dirLexical).isDirectory()) {
+    throw new ConfigError(`${where}: source.dir 不存在或不是目录: ${dirLexical}`);
   }
+  // realpath 跟随符号链接（对齐 Python Path.resolve()）：消费方可能以 symlink 入口
+  // （如 ~/obsidian/X → iCloud）或真实路径两种写法指同一目录，规范名必须一致
+  const dir = realpathSync(dirLexical);
   const glob = requireString(source, "glob", `${where}.source`);
   const ignoreRaw = source["ignore"] ?? [];
   if (!Array.isArray(ignoreRaw) || ignoreRaw.some((x) => typeof x !== "string")) {
     throw new ConfigError(`${where}: source.ignore 必须是字符串数组`);
   }
 
-  const resultsDir = resolve(expandTilde(requireString(obj, "resultsDir", where)));
-  mkdirSync(resultsDir, { recursive: true }); // 校验"可创建"
+  const resultsDirLexical = resolve(expandTilde(requireString(obj, "resultsDir", where)));
+  mkdirSync(resultsDirLexical, { recursive: true }); // 校验"可创建"
+  const resultsDir = realpathSync(resultsDirLexical); // 同 dir：跟随符号链接
 
   const backend = requireString(obj, "backend", where);
   if (backend !== "memory" && backend !== "sqlite") {
@@ -135,6 +140,13 @@ function parseCorpus(raw: unknown, index: number): CorpusConfig {
   if (timeoutSec !== undefined) cfg.timeoutSec = timeoutSec;
   const debounceSec = optionalInt(obj, "debounceSec", where);
   if (debounceSec !== undefined) cfg.debounceSec = debounceSec;
+  if ("volatileFrontmatterKeys" in obj) {
+    const v = obj["volatileFrontmatterKeys"];
+    if (!Array.isArray(v) || v.length === 0 || v.some((x) => typeof x !== "string" || !x.trim())) {
+      throw new ConfigError(`${where}: volatileFrontmatterKeys 必须是非空字符串数组`);
+    }
+    cfg.volatileFrontmatterKeys = v as string[];
+  }
   return cfg;
 }
 

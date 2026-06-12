@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { run, makeCtx, Budget, BudgetExhausted } from "../src/llm/kernel.js";
 import type { LlmRequest } from "../src/llm/kernel.js";
 import { MockLlm } from "../src/llm/mock.js";
-import { summarizeNode, buildSummaries, selectNodesOrEmpty } from "../src/llm/agents.js";
+import { summarizeNode, buildSummaries, buildSummaryCache, selectNodesOrEmpty } from "../src/llm/agents.js";
 import { searchAgent } from "../src/search.js";
 import { mdToTree } from "../src/core/tree.js";
 import type { DocStructure, TreeNode } from "../src/types/canopy.types.js";
@@ -61,6 +61,58 @@ describe("buildSummaries", () => {
     const doc = mdToTree("# A", { docName: "t" }); // 无 withText
     const llm = new MockLlm(() => "x");
     await expect(run(buildSummaries(doc, 200), llm)).rejects.toThrow(/缺 text/);
+  });
+});
+
+describe("M8.5 节点级摘要复用", () => {
+  // 文档：一个长叶节点（>阈值，烧 LLM）+ 一个短父节点（原文，零成本）
+  const src = `# Parent\nshort intro\n## Leaf\n${LONG_TEXT}`;
+
+  it("buildSummaryCache 只收录 LLM 摘要（原文摘要不进缓存）", async () => {
+    const doc = mdToTree(src, { docName: "t", withText: true });
+    const r = await run(buildSummaries(doc, 200), new MockLlm(() => "LLM-SUM"));
+    const out = (r.outcome.ok && r.outcome.value) as DocStructure;
+    const cache = buildSummaryCache(out);
+    // 仅长叶节点（prefix/summary !== text）入缓存；短父节点原文摘要被排除
+    expect(cache.size).toBe(1);
+    expect([...cache.values()]).toEqual(["LLM-SUM"]);
+  });
+
+  it("正文未变 → 复用既往摘要、零 LLM 调用", async () => {
+    const doc1 = mdToTree(src, { docName: "t", withText: true });
+    const r1 = await run(buildSummaries(doc1, 200), new MockLlm(() => "OLD-SUM"));
+    const cache = buildSummaryCache((r1.outcome.ok && r1.outcome.value) as DocStructure);
+
+    // 二次索引：同正文 + 命中缓存的 LLM 应当一次都不被调用
+    const doc2 = mdToTree(src, { docName: "t", withText: true });
+    let calls = 0;
+    const r2 = await run(
+      buildSummaries(doc2, 200, cache),
+      new MockLlm(() => { calls++; return "NEW-SUM"; }),
+    );
+    expect(calls).toBe(0);
+    expect(r2.spent.calls).toBe(0);
+    const leaf = ((r2.outcome.ok && r2.outcome.value) as DocStructure).structure[0]?.nodes?.[0] as TreeNode;
+    expect(leaf.summary).toBe("OLD-SUM"); // 复用旧值，未重生成
+  });
+
+  it("正文变更 → 缓存未命中、重新生成", async () => {
+    const doc1 = mdToTree(src, { docName: "t", withText: true });
+    const r1 = await run(buildSummaries(doc1, 200), new MockLlm(() => "OLD-SUM"));
+    const cache = buildSummaryCache((r1.outcome.ok && r1.outcome.value) as DocStructure);
+
+    const doc2 = mdToTree(`# Parent\nshort intro\n## Leaf\n${LONG_TEXT} EDITED`, {
+      docName: "t",
+      withText: true,
+    });
+    let calls = 0;
+    const r2 = await run(
+      buildSummaries(doc2, 200, cache),
+      new MockLlm(() => { calls++; return "NEW-SUM"; }),
+    );
+    expect(calls).toBe(1); // 正文改了 → md5 不命中 → 重烧
+    const leaf = ((r2.outcome.ok && r2.outcome.value) as DocStructure).structure[0]?.nodes?.[0] as TreeNode;
+    expect(leaf.summary).toBe("NEW-SUM");
   });
 });
 

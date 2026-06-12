@@ -96,7 +96,12 @@ corpora:
     concurrency: 5               # 必填
     timeoutSec: 300              # 可选
     debounceSec: 2               # 可选（watch）
+    volatileFrontmatterKeys: [updatetime]   # 可选：增量判定时剔除的易变 frontmatter 键
 ```
+
+`volatileFrontmatterKeys`（可选）：列出的键（含其缩进延续行）在内容指纹计算前从
+frontmatter 剔除——自动时间戳、外部回写字段的变更不触发整篇重索引。仅影响增量
+判定；索引产物内的文本仍为完整原文。
 
 未知键报错（防 typo 静默失效）；必填键缺失即崩（fail-loud，无静默默认）。
 

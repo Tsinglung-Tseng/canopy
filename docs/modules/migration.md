@@ -1,6 +1,8 @@
 # migration — 消费方迁移与旧仓退役
 
-状态：设计完成（M6/M7 执行）
+状态：部分完成（2026-06-12）——✅ MCP 注册 / launchd batch / Molly worker 三指针已切换至 canopy；
+⏳ 待办：readers.myapp 迁移（现以软链 books corpus 只读过渡）、library-search adapter 迁移、
+pageindex/ 包退役（上述两家迁完后并入 legacy/）
 
 ## 迁移总表
 

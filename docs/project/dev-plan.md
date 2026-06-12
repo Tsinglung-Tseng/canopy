@@ -57,6 +57,7 @@
 - [x] E2E 端到端验证（2026-06-11）：真实 RPG 语料（3,821 产物）find 与 Python 版输出一致；真实 DeepSeek 两阶段 search（中文答案合成）；真实 LLM 索引 700 行长文档（4 calls）；二跑全 skip（md5 增量）；既有产物收养零重建；Python verbatim 检索代码消费 TS 产物 PASS
 - [ ] M7 消费方迁移：readers.myapp 删自制 BM25 改调 CLI；library-search adapter 改走 canopy；launchd pageindex-batch 改 `canopy batch`；MCP 注册切换、Molly worker startCmd 切换；molly.pageindex 应用层退役（results/ 数据保留，见 ADR-006）
 - [ ] M8 SQLite FTS5 索引后端（大文本集路线，见 ADR-003）
+- [x] M8.5 节点级摘要复用：重索引时从既有产物建 `md5(正文)→摘要` 缓存，正文逐字未变的节点跳过 LLM 直接复用既往摘要（2026-06-12）。键用正文 md5（node_id 是先序位置编号，插入/删除 heading 会整体偏移，不可作键）；缓存只收录"真烧过 LLM"的摘要（`summary/prefix_summary !== text`），阈值以下原文摘要零成本重算不入缓存，避免阈值变更误用原文形态；`--force` 显式跳过复用（prompt/阈值/模型变更时强制全量重生成）。tagger 回写/frontmatter 小改触发的重索引不再全文档重生成摘要（大笔记从 33 调用降到仅变更节点数）。
 
 ## 📝 开发记录
 
